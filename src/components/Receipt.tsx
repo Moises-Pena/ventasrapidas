@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Sale } from '../types';
 import { format } from 'date-fns';
-import { Printer } from 'lucide-react';
+import { Printer, Settings } from 'lucide-react';
 
 interface ReceiptProps {
   sale: Sale;
@@ -14,17 +14,22 @@ const Receipt: React.FC<ReceiptProps> = ({ sale, onClose }) => {
   const handlePrint = () => {
     const content = receiptRef.current;
     if (!content) return;
-    
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-    
-    printWindow.document.write(`
+
+    // Create a temporary iframe for printing
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    const printDocument = iframe.contentWindow?.document;
+    if (!printDocument) return;
+
+    printDocument.write(`
       <html>
         <head>
           <title>Recibo de Venta</title>
           <style>
             body {
-              font-family: 'Courier New', monospace;
+              font-family: 'Courier New', Courier, monospace;
               font-size: 12px;
               margin: 0;
               padding: 10px;
@@ -62,11 +67,19 @@ const Receipt: React.FC<ReceiptProps> = ({ sale, onClose }) => {
         </body>
       </html>
     `);
-    
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
+
+    printDocument.close();
+
+    // Wait for content to load
+    iframe.onload = () => {
+      // Use the native print dialog
+      iframe.contentWindow?.print();
+
+      // Remove the iframe after printing
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    };
   };
 
   return (
@@ -76,9 +89,10 @@ const Receipt: React.FC<ReceiptProps> = ({ sale, onClose }) => {
           <h2 className="text-lg font-medium">Recibo de Venta</h2>
           <button
             onClick={handlePrint}
-            className="p-1 rounded-full bg-white text-blue-500 hover:bg-blue-50"
+            className="inline-flex items-center px-3 py-1.5 rounded-md bg-white text-blue-500 hover:bg-blue-50"
           >
-            <Printer className="h-5 w-5" />
+            <Printer className="h-4 w-4 mr-1.5" />
+            <span className="text-sm">Imprimir</span>
           </button>
         </div>
         

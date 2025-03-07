@@ -48,7 +48,7 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
   
   if (currentUser?.role !== 'admin') {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   
   return <>{children}</>;
@@ -72,7 +72,7 @@ const CashierRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   }
   
   if (currentUser?.role !== 'cashier') {
-    return <Navigate to="/productos" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   
   return <>{children}</>;

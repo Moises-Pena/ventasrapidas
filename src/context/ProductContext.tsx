@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, Category } from '../types';
 import { 
-  getProducts, 
-  getCategories, 
-  addProduct as addProductService, 
+  getProducts,
+  getCategories,
+  addProduct as addProductService,
   updateProduct as updateProductService,
   deleteProduct as deleteProductService,
   addCategory as addCategoryService,

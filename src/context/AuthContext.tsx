@@ -23,7 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await initializeDemoUsers();
       
       // Check for saved user in localStorage
-      const savedUser = localStorage.getItem('currentUser');
+      const savedUser = sessionStorage.getItem('currentUser');
       if (savedUser) {
         setCurrentUser(JSON.parse(savedUser));
         setIsAuthenticated(true);
@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (user) {
         setCurrentUser(user);
         setIsAuthenticated(true);
-        localStorage.setItem('currentUser', JSON.stringify(user));
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
         return true;
       }
       
@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setCurrentUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('currentUser');
   };
 
   return (

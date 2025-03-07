@@ -14,20 +14,12 @@ import {
 } from 'firebase/firestore';
 import { db } from './config';
 import { Product, Category, Sale, CashRegister, RegisterClosing, User } from '../types';
-import { v4 as uuidv4 } from 'uuid';
-
-// Collections
-const PRODUCTS_COLLECTION = 'products';
-const CATEGORIES_COLLECTION = 'categories';
-const SALES_COLLECTION = 'sales';
-const REGISTERS_COLLECTION = 'registers';
-const REGISTER_CLOSINGS_COLLECTION = 'registerClosings';
-const USERS_COLLECTION = 'users';
+import { COLLECTIONS, DEFAULTS } from './settings';
 
 // User Services
 export const getUserByPin = async (pin: string): Promise<User | null> => {
   try {
-    const q = query(collection(db, USERS_COLLECTION), where('pin', '==', pin));
+    const q = query(collection(db, COLLECTIONS.USERS), where('pin', '==', pin));
     const querySnapshot = await getDocs(q);
     
     if (querySnapshot.empty) {
@@ -49,7 +41,7 @@ export const getUserByPin = async (pin: string): Promise<User | null> => {
 
 export const getAllUsers = async (): Promise<User[]> => {
   try {
-    const querySnapshot = await getDocs(collection(db, USERS_COLLECTION));
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.USERS));
     return querySnapshot.docs.map(doc => {
       const data = doc.data();
       return {
@@ -67,7 +59,7 @@ export const getAllUsers = async (): Promise<User[]> => {
 
 export const updateUserPin = async (userId: string, newPin: string): Promise<boolean> => {
   try {
-    const userRef = doc(db, USERS_COLLECTION, userId);
+    const userRef = doc(db, COLLECTIONS.USERS, userId);
     await updateDoc(userRef, {
       pin: newPin
     });
@@ -81,22 +73,14 @@ export const updateUserPin = async (userId: string, newPin: string): Promise<boo
 // Initialize demo users if they don't exist
 export const initializeDemoUsers = async (): Promise<void> => {
   try {
-    const querySnapshot = await getDocs(collection(db, USERS_COLLECTION));
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.USERS));
     
     if (querySnapshot.empty) {
       // Add demo admin user
-      await setDoc(doc(db, USERS_COLLECTION, '1'), {
-        name: 'Admin',
-        pin: '1234',
-        role: 'admin'
-      });
+      await setDoc(doc(db, COLLECTIONS.USERS, '1'), DEFAULTS.ADMIN_USER);
       
       // Add demo cashier user
-      await setDoc(doc(db, USERS_COLLECTION, '2'), {
-        name: 'Cajero',
-        pin: '5678',
-        role: 'cashier'
-      });
+      await setDoc(doc(db, COLLECTIONS.USERS, '2'), DEFAULTS.CASHIER_USER);
       
       console.log('Demo users initialized');
     }
@@ -108,7 +92,7 @@ export const initializeDemoUsers = async (): Promise<void> => {
 // Product Services
 export const getProducts = async (): Promise<Product[]> => {
   try {
-    const querySnapshot = await getDocs(collection(db, PRODUCTS_COLLECTION));
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.PRODUCTS));
     return querySnapshot.docs.map(doc => {
       const data = doc.data();
       return {
@@ -136,7 +120,7 @@ export const addProduct = async (name: string, price: number, categoryId?: strin
       updatedAt: serverTimestamp()
     };
     
-    const docRef = await addDoc(collection(db, PRODUCTS_COLLECTION), productData);
+    const docRef = await addDoc(collection(db, COLLECTIONS.PRODUCTS), productData);
     
     return {
       id: docRef.id,
@@ -154,7 +138,7 @@ export const addProduct = async (name: string, price: number, categoryId?: strin
 
 export const updateProduct = async (id: string, name: string, price: number, categoryId?: string): Promise<boolean> => {
   try {
-    const productRef = doc(db, PRODUCTS_COLLECTION, id);
+    const productRef = doc(db, COLLECTIONS.PRODUCTS, id);
     await updateDoc(productRef, {
       name,
       price,
@@ -170,7 +154,7 @@ export const updateProduct = async (id: string, name: string, price: number, cat
 
 export const deleteProduct = async (id: string): Promise<boolean> => {
   try {
-    await deleteDoc(doc(db, PRODUCTS_COLLECTION, id));
+    await deleteDoc(doc(db, COLLECTIONS.PRODUCTS, id));
     return true;
   } catch (error) {
     console.error('Error deleting product:', error);
@@ -181,7 +165,7 @@ export const deleteProduct = async (id: string): Promise<boolean> => {
 // Category Services
 export const getCategories = async (): Promise<Category[]> => {
   try {
-    const querySnapshot = await getDocs(collection(db, CATEGORIES_COLLECTION));
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.CATEGORIES));
     return querySnapshot.docs.map(doc => {
       const data = doc.data();
       return {
@@ -205,7 +189,7 @@ export const addCategory = async (name: string): Promise<Category | null> => {
       updatedAt: serverTimestamp()
     };
     
-    const docRef = await addDoc(collection(db, CATEGORIES_COLLECTION), categoryData);
+    const docRef = await addDoc(collection(db, COLLECTIONS.CATEGORIES), categoryData);
     
     return {
       id: docRef.id,
@@ -221,7 +205,7 @@ export const addCategory = async (name: string): Promise<Category | null> => {
 
 export const updateCategory = async (id: string, name: string): Promise<boolean> => {
   try {
-    const categoryRef = doc(db, CATEGORIES_COLLECTION, id);
+    const categoryRef = doc(db, COLLECTIONS.CATEGORIES, id);
     await updateDoc(categoryRef, {
       name,
       updatedAt: serverTimestamp()
@@ -236,14 +220,14 @@ export const updateCategory = async (id: string, name: string): Promise<boolean>
 export const deleteCategory = async (id: string): Promise<boolean> => {
   try {
     // Check if there are products using this category
-    const q = query(collection(db, PRODUCTS_COLLECTION), where('categoryId', '==', id));
+    const q = query(collection(db, COLLECTIONS.PRODUCTS), where('categoryId', '==', id));
     const querySnapshot = await getDocs(q);
     
     if (!querySnapshot.empty) {
       return false; // Can't delete category with products
     }
     
-    await deleteDoc(doc(db, CATEGORIES_COLLECTION, id));
+    await deleteDoc(doc(db, COLLECTIONS.CATEGORIES, id));
     return true;
   } catch (error) {
     console.error('Error deleting category:', error);
@@ -255,64 +239,36 @@ export const deleteCategory = async (id: string): Promise<boolean> => {
 export const initializeDemoData = async (): Promise<void> => {
   try {
     // Check if categories exist
-    const categoriesSnapshot = await getDocs(collection(db, CATEGORIES_COLLECTION));
+    const categoriesSnapshot = await getDocs(collection(db, COLLECTIONS.CATEGORIES));
     
     if (categoriesSnapshot.empty) {
       // Add demo categories
-      const bebidasRef = await addDoc(collection(db, CATEGORIES_COLLECTION), {
-        name: 'Bebidas',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
+      const categoryPromises = DEFAULTS.DEMO_CATEGORIES.map(category => 
+        addDoc(collection(db, COLLECTIONS.CATEGORIES), {
+          ...category,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        })
+      );
       
-      const comidasRef = await addDoc(collection(db, CATEGORIES_COLLECTION), {
-        name: 'Comidas',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-      
-      const postresRef = await addDoc(collection(db, CATEGORIES_COLLECTION), {
-        name: 'Postres',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
+      const categoryRefs = await Promise.all(categoryPromises);
       
       // Check if products exist
-      const productsSnapshot = await getDocs(collection(db, PRODUCTS_COLLECTION));
+      const productsSnapshot = await getDocs(collection(db, COLLECTIONS.PRODUCTS));
       
       if (productsSnapshot.empty) {
         // Add demo products
-        await addDoc(collection(db, PRODUCTS_COLLECTION), {
-          name: 'Café Americano',
-          price: 2.50,
-          categoryId: bebidasRef.id,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
+        const productPromises = DEFAULTS.DEMO_PRODUCTS.map(product => 
+          addDoc(collection(db, COLLECTIONS.PRODUCTS), {
+            name: product.name,
+            price: product.price,
+            categoryId: categoryRefs[product.categoryIndex].id,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          })
+        );
         
-        await addDoc(collection(db, PRODUCTS_COLLECTION), {
-          name: 'Sandwich de Jamón y Queso',
-          price: 4.75,
-          categoryId: comidasRef.id,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
-        
-        await addDoc(collection(db, PRODUCTS_COLLECTION), {
-          name: 'Jugo de Naranja',
-          price: 3.00,
-          categoryId: bebidasRef.id,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
-        
-        await addDoc(collection(db, PRODUCTS_COLLECTION), {
-          name: 'Ensalada César',
-          price: 6.50,
-          categoryId: comidasRef.id,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
+        await Promise.all(productPromises);
       }
       
       console.log('Demo data initialized');
@@ -325,7 +281,7 @@ export const initializeDemoData = async (): Promise<void> => {
 // Sales Services
 export const getSales = async (): Promise<Sale[]> => {
   try {
-    const querySnapshot = await getDocs(collection(db, SALES_COLLECTION));
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.SALES));
     return querySnapshot.docs.map(doc => {
       const data = doc.data();
       return {
@@ -352,7 +308,7 @@ export const addSale = async (sale: Omit<Sale, 'id'>): Promise<Sale | null> => {
       timestamp: Timestamp.fromDate(sale.timestamp)
     };
     
-    const docRef = await addDoc(collection(db, SALES_COLLECTION), saleData);
+    const docRef = await addDoc(collection(db, COLLECTIONS.SALES), saleData);
     
     return {
       ...sale,
@@ -367,7 +323,7 @@ export const addSale = async (sale: Omit<Sale, 'id'>): Promise<Sale | null> => {
 // Register Services
 export const getCurrentRegister = async (): Promise<CashRegister | null> => {
   try {
-    const q = query(collection(db, REGISTERS_COLLECTION), where('closedAt', '==', null));
+    const q = query(collection(db, COLLECTIONS.REGISTERS), where('closedAt', '==', null));
     const querySnapshot = await getDocs(q);
     
     if (querySnapshot.empty) {
@@ -401,7 +357,7 @@ export const openRegister = async (initialAmount: number, cashierId: string): Pr
       cashierId
     };
     
-    const docRef = await addDoc(collection(db, REGISTERS_COLLECTION), registerData);
+    const docRef = await addDoc(collection(db, COLLECTIONS.REGISTERS), registerData);
     
     return {
       id: docRef.id,
@@ -420,7 +376,7 @@ export const openRegister = async (initialAmount: number, cashierId: string): Pr
 
 export const updateRegisterSales = async (registerId: string, sale: Sale): Promise<boolean> => {
   try {
-    const registerRef = doc(db, REGISTERS_COLLECTION, registerId);
+    const registerRef = doc(db, COLLECTIONS.REGISTERS, registerId);
     const registerDoc = await getDoc(registerRef);
     
     if (!registerDoc.exists()) {
@@ -443,7 +399,7 @@ export const updateRegisterSales = async (registerId: string, sale: Sale): Promi
 
 export const closeRegister = async (registerId: string, finalAmount: number): Promise<boolean> => {
   try {
-    const registerRef = doc(db, REGISTERS_COLLECTION, registerId);
+    const registerRef = doc(db, COLLECTIONS.REGISTERS, registerId);
     await updateDoc(registerRef, {
       closedAt: serverTimestamp(),
       finalAmount
@@ -458,7 +414,7 @@ export const closeRegister = async (registerId: string, finalAmount: number): Pr
 // Register Closings Services
 export const getRegisterClosings = async (): Promise<RegisterClosing[]> => {
   try {
-    const querySnapshot = await getDocs(collection(db, REGISTER_CLOSINGS_COLLECTION));
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.REGISTER_CLOSINGS));
     return querySnapshot.docs.map(doc => {
       const data = doc.data();
       return {
@@ -489,7 +445,7 @@ export const addRegisterClosing = async (closing: Omit<RegisterClosing, 'id'>): 
       closedAt: Timestamp.fromDate(closing.closedAt)
     };
     
-    const docRef = await addDoc(collection(db, REGISTER_CLOSINGS_COLLECTION), closingData);
+    const docRef = await addDoc(collection(db, COLLECTIONS.REGISTER_CLOSINGS), closingData);
     
     return {
       ...closing,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Delete } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -10,6 +10,20 @@ const LoginForm: React.FC = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
+  
+  const handleNumberClick = (number: number) => {
+    if (pin.length < 6) {
+      setPin(prev => prev + number);
+    }
+  };
+  
+  const handleDelete = () => {
+    setPin(prev => prev.slice(0, -1));
+  };
+  
+  const handleClear = () => {
+    setPin('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,19 +76,60 @@ const LoginForm: React.FC = () => {
               <label htmlFor="pin" className="sr-only">
                 PIN
               </label>
-              <input
-                id="pin"
-                name="pin"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-lg text-center"
-                placeholder="Ingresa tu PIN"
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                maxLength={6}
-                disabled={isLoggingIn}
-              />
+              <div className="relative">
+                <input
+                  id="pin"
+                  name="pin"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-lg text-center"
+                  placeholder="Ingresa tu PIN"
+                  value={pin}
+                  readOnly
+                  maxLength={6}
+                  disabled={isLoggingIn}
+                />
+              </div>
+            
+              {/* Numeric Keypad */}
+              <div className="mt-6 grid grid-cols-3 gap-3">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((number) => (
+                  <button
+                    key={number}
+                    type="button"
+                    onClick={() => handleNumberClick(number)}
+                    disabled={isLoggingIn}
+                    className="inline-flex justify-center items-center px-4 py-4 border border-gray-300 shadow-sm text-xl font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {number}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  disabled={isLoggingIn}
+                  className="inline-flex justify-center items-center px-4 py-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Clear
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleNumberClick(0)}
+                  disabled={isLoggingIn}
+                  className="inline-flex justify-center items-center px-4 py-4 border border-gray-300 shadow-sm text-xl font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  0
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isLoggingIn}
+                  className="inline-flex justify-center items-center px-4 py-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Delete className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -85,7 +140,7 @@ const LoginForm: React.FC = () => {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mt-6"
               disabled={isLoggingIn}
             >
               {isLoggingIn ? (

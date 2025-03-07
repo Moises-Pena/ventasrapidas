@@ -1,13 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { Sale, CartItem, CashRegister, DailySummary, RegisterClosing } from '../types';
 import { useAuth } from './AuthContext';
 import { format } from 'date-fns';
-import { 
-  getSales, 
-  addSale, 
-  getCurrentRegister, 
-  openRegister as openRegisterService, 
+import {
+  getSales,
+  addSale,
+  getCurrentRegister,
+  openRegister as openRegisterService,
   closeRegister as closeRegisterService,
   updateRegisterSales,
   getRegisterClosings,

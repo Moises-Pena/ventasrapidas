@@ -1,14 +1,31 @@
 import React, { useState } from 'react';
 import { useSales } from '../context/SalesContext';
 import SalesChart from '../components/SalesChart';
-import { format } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const DashboardPage: React.FC = () => {
   const { getDailySummary, sales, loading } = useSales();
-  const [days, setDays] = useState(7);
+  const [period, setPeriod] = useState('7d');
   
-  const dailySummary = getDailySummary(days);
+  const getDaysForPeriod = (selectedPeriod: string): number => {
+    switch (selectedPeriod) {
+      case '7d':
+        return 7;
+      case '14d':
+        return 14;
+      case '30d':
+        return 30;
+      case '12m':
+        const today = new Date();
+        const twelveMonthsAgo = subMonths(today, 12);
+        return Math.ceil((today.getTime() - twelveMonthsAgo.getTime()) / (1000 * 60 * 60 * 24));
+      default:
+        return 7;
+    }
+  };
+  
+  const dailySummary = getDailySummary(getDaysForPeriod(period));
   
   const totalSales = dailySummary.reduce((sum, day) => sum + day.totalSales, 0);
   const totalTransactions = dailySummary.reduce((sum, day) => sum + day.salesCount, 0);
@@ -31,18 +48,19 @@ const DashboardPage: React.FC = () => {
         
         <div className="px-4 py-5 sm:p-6">
           <div className="mb-4">
-            <label htmlFor="days" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="period" className="block text-sm font-medium text-gray-700">
               Período
             </label>
             <select
-              id="days"
-              value={days}
-              onChange={(e) => setDays(parseInt(e.target.value))}
+              id="period"
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
             >
-              <option value={7}>Últimos 7 días</option>
-              <option value={14}>Últimos 14 días</option>
-              <option value={30}>Últimos 30 días</option>
+              <option value="7d">Últimos 7 días</option>
+              <option value="14d">Últimos 14 días</option>
+              <option value="30d">Últimos 30 días</option>
+              <option value="12m">Últimos 12 meses</option>
             </select>
           </div>
           
@@ -62,7 +80,9 @@ const DashboardPage: React.FC = () => {
           </div>
           
           <div className="mb-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Ventas por Día</h2>
+            <h2 className="text-lg font-medium text-gray-900 mb-4">
+              {period === '12m' ? 'Ventas por Mes' : 'Ventas por Día'}
+            </h2>
             <SalesChart data={dailySummary} />
           </div>
           
