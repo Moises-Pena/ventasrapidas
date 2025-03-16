@@ -2,17 +2,27 @@ import React, { useState } from 'react';
 import { useSales } from '../context/SalesContext';
 import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from 'date-fns';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Receipt, Printer } from 'lucide-react';
+import { Receipt, Printer, RefreshCw } from 'lucide-react';
 import { printReceipt } from '../components/Receipt';
 
 const ReceiptsPage: React.FC = () => {
-  const { sales, loading } = useSales();
+  const { sales, loading, getSales } = useSales();
   const [searchParams, setSearchParams] = useState({
     customerName: '',
     receiptId: '',
     date: ''
   });
   const [selectedReceipts, setSelectedReceipts] = useState<string[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await getSales();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const filteredSales = sales.filter(sale => {
     const matchesName = sale.customerName.toLowerCase().includes(searchParams.customerName.toLowerCase());
@@ -62,7 +72,18 @@ const ReceiptsPage: React.FC = () => {
               <Receipt className="h-5 w-5 mr-2 text-blue-500" />
               Búsqueda de Facturas
             </h1>
-            {selectedReceipts.length > 0 && (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className={`inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                  refreshing ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                <RefreshCw className={`h-4 w-4 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
+                Actualizar
+              </button>
+              {selectedReceipts.length > 0 && (
               <button
                 onClick={handlePrintSelected}
                 className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -70,7 +91,8 @@ const ReceiptsPage: React.FC = () => {
                 <Printer className="h-4 w-4 mr-1.5" />
                 Reimprimir ({selectedReceipts.length})
               </button>
-            )}
+              )}
+            </div>
           </div>
         </div>
         

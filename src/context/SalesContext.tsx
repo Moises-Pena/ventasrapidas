@@ -21,6 +21,7 @@ interface SalesContextType {
   registerClosings: RegisterClosing[];
   cart: CartItem[];
   loading: boolean;
+  getSales: () => Promise<void>;
   addToCart: (item: CartItem) => void;
   removeFromCart: (productId: string) => void;
   updateCartItemQuantity: (productId: string, quantity: number) => void;
@@ -45,15 +46,23 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
 
+  const loadSales = async () => {
+    try {
+      const salesData = await getSales();
+      setSales(salesData);
+    } catch (error) {
+      console.error('Error loading sales data:', error);
+    }
+  };
+
   // Load sales, register, and closings from Firestore
   useEffect(() => {
     const loadData = async () => {
       try {
-        const salesData = await getSales();
+        await loadSales();
         const registerData = await getCurrentRegister();
         const closingsData = await getRegisterClosings();
         
-        setSales(salesData);
         setCurrentRegister(registerData);
         setRegisterClosings(closingsData);
       } catch (error) {
@@ -298,6 +307,7 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         registerClosings,
         cart,
         loading,
+        getSales: loadSales,
         addToCart, 
         removeFromCart, 
         updateCartItemQuantity,
