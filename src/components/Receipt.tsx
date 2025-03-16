@@ -8,78 +8,130 @@ interface ReceiptProps {
   onClose: () => void;
 }
 
+export const printReceipt = (sale: Sale): void => {
+  // Create a temporary div to hold the receipt content
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = `
+    <div class="receipt-paper">
+      <div class="header">
+        <h3 class="text-lg font-bold">VENTA RÁPIDA</h3>
+        <p>Recibo de Venta</p>
+        <p>${format(new Date(sale.timestamp), 'dd/MM/yyyy HH:mm:ss')}</p>
+        <p>No. ${sale.id.substring(0, 8)}</p>
+        ${sale.customerName ? `<p>Cliente: ${sale.customerName}</p>` : ''}
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="items">
+        ${sale.items.map(item => `
+          <div class="item">
+            <div style="max-width: 70%; word-wrap: break-word">
+              <span>${item.quantity}x </span>
+              <span>${item.product.name}</span>
+            </div>
+            <span>$${(item.product.price * item.quantity).toFixed(2)}</span>
+          </div>
+        `).join('')}
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="total">
+        <div class="item">
+          <span>TOTAL:</span>
+          <span>$${sale.total.toFixed(2)}</span>
+        </div>
+        <div class="item">
+          <span>PAGADO:</span>
+          <span>$${sale.amountPaid.toFixed(2)}</span>
+        </div>
+        <div class="item">
+          <span>CAMBIO:</span>
+          <span>$${sale.change.toFixed(2)}</span>
+        </div>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="footer">
+        <p>¡Gracias por su compra!</p>
+      </div>
+    </div>
+  `;
+
+  // Create a temporary iframe for printing
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  const printDocument = iframe.contentWindow?.document;
+  if (!printDocument) return;
+
+  printDocument.write(`
+    <html>
+      <head>
+        <title>Recibo de Venta</title>
+        <style>
+          body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            margin: 0;
+            padding: 10px;
+            width: 300px;
+          }
+          .receipt-paper {
+            width: 100%;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 10px;
+          }
+          .divider {
+            border-top: 1px dashed #000;
+            margin: 5px 0;
+          }
+          .item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+          }
+          .total {
+            font-weight: bold;
+            margin-top: 10px;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 10px;
+          }
+        </style>
+      </head>
+      <body>
+        ${tempDiv.innerHTML}
+      </body>
+    </html>
+  `);
+
+  printDocument.close();
+
+  // Wait for content to load
+  iframe.onload = () => {
+    // Use the native print dialog
+    iframe.contentWindow?.print();
+
+    // Remove the iframe after printing
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 1000);
+  };
+};
+
 const Receipt: React.FC<ReceiptProps> = ({ sale, onClose }) => {
   const receiptRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
-    const content = receiptRef.current;
-    if (!content) return;
-
-    // Create a temporary iframe for printing
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-
-    const printDocument = iframe.contentWindow?.document;
-    if (!printDocument) return;
-
-    printDocument.write(`
-      <html>
-        <head>
-          <title>Recibo de Venta</title>
-          <style>
-            body {
-              font-family: 'Courier New', Courier, monospace;
-              font-size: 12px;
-              margin: 0;
-              padding: 10px;
-              width: 300px;
-            }
-            .receipt {
-              width: 100%;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 10px;
-            }
-            .divider {
-              border-top: 1px dashed #000;
-              margin: 5px 0;
-            }
-            .item {
-              display: flex;
-              justify-content: space-between;
-              margin: 5px 0;
-            }
-            .total {
-              font-weight: bold;
-              margin-top: 10px;
-            }
-            .footer {
-              text-align: center;
-              margin-top: 20px;
-              font-size: 10px;
-            }
-          </style>
-        </head>
-        <body>
-          ${content.innerHTML}
-        </body>
-      </html>
-    `);
-
-    printDocument.close();
-
-    // Wait for content to load
-    iframe.onload = () => {
-      // Use the native print dialog
-      iframe.contentWindow?.print();
-
-      // Remove the iframe after printing
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 1000);
-    };
+    printReceipt(sale);
   };
 
   return (

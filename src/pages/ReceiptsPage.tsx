@@ -3,6 +3,7 @@ import { useSales } from '../context/SalesContext';
 import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from 'date-fns';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Receipt, Printer } from 'lucide-react';
+import { printReceipt } from '../components/Receipt';
 
 const ReceiptsPage: React.FC = () => {
   const { sales, loading } = useSales();
@@ -30,8 +31,10 @@ const ReceiptsPage: React.FC = () => {
   });
 
   const handlePrintSelected = () => {
-    // TODO: Implement printing functionality for selected receipts
-    console.log('Print selected receipts:', selectedReceipts);
+    const selectedSales = filteredSales.filter(sale => selectedReceipts.includes(sale.id));
+    selectedSales.forEach(sale => {
+      printReceipt(sale);
+    });
   };
 
   const toggleReceiptSelection = (saleId: string) => {
