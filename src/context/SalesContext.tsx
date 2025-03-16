@@ -4,6 +4,8 @@ import { useAuth } from './AuthContext';
 import { format } from 'date-fns';
 import {
   getSales,
+  deleteRegisterClosing as deleteRegisterClosingService,
+  updateRegisterClosingAmount as updateRegisterClosingAmountService,
   addSale,
   getCurrentRegister,
   openRegister as openRegisterService,
@@ -29,6 +31,8 @@ interface SalesContextType {
   getDailySummary: (days: number) => DailySummary[];
   getTotalSales: () => number;
   getSaleCount: () => number;
+  deleteRegisterClosing: (id: string) => void;
+  updateRegisterClosingAmount: (id: string, newFinalAmount: number) => void;
 }
 
 const SalesContext = createContext<SalesContextType | undefined>(undefined);
@@ -258,6 +262,34 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return currentRegister.sales.length;
   };
 
+  const deleteRegisterClosing = (id: string) => {
+    try {
+      deleteRegisterClosingService(id);
+      setRegisterClosings(prev => prev.filter(closing => closing.id !== id));
+    } catch (error) {
+      console.error('Error deleting register closing:', error);
+    }
+  };
+
+  const updateRegisterClosingAmount = (id: string, newFinalAmount: number) => {
+    try {
+      updateRegisterClosingAmountService(id, newFinalAmount);
+      setRegisterClosings(prev => prev.map(closing => {
+        if (closing.id === id) {
+          const newDifference = newFinalAmount - (closing.initialAmount + closing.totalSales);
+          return {
+            ...closing,
+            finalAmount: newFinalAmount,
+            difference: newDifference
+          };
+        }
+        return closing;
+      }));
+    } catch (error) {
+      console.error('Error updating register closing amount:', error);
+    }
+  };
+
   return (
     <SalesContext.Provider 
       value={{ 
@@ -275,7 +307,9 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         closeRegister,
         getDailySummary,
         getTotalSales,
-        getSaleCount
+        getSaleCount,
+        deleteRegisterClosing,
+        updateRegisterClosingAmount
       }}
     >
       {children}

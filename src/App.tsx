@@ -7,7 +7,8 @@ import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import SalesPage from './pages/SalesPage';
 import ProductsPage from './pages/ProductsPage';
-import ReportsPage from './pages/ReportsPage';
+import ClosingsPage from './pages/ReportsPage';
+import ReceiptsPage from './pages/ReceiptsPage';
 import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
 import LoadingSpinner from './components/LoadingSpinner';
@@ -92,6 +93,11 @@ function App() {
                     <SalesPage />
                   </CashierRoute>
                 } />
+                <Route path="facturas" element={
+                  <ProtectedRoute>
+                    <ReceiptsPage />
+                  </ProtectedRoute>
+                } />
                 <Route path="productos" element={
                   <AdminRoute>
                     <ProductsPage />
@@ -107,9 +113,9 @@ function App() {
                     <UsersPage />
                   </AdminRoute>
                 } />
-                <Route path="reportes" element={
+                <Route path="cierres" element={
                   <AdminRoute>
-                    <ReportsPage />
+                    <ClosingsPage />
                   </AdminRoute>
                 } />
               </Route>

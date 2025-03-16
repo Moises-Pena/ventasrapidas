@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { ShoppingCart, Package, BarChart3, LogOut, Menu, X, ClipboardList, Users } from 'lucide-react';
+import { ShoppingCart, Package, BarChart3, LogOut, Menu, X, ClipboardList, Users, Receipt } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Layout: React.FC = () => {
@@ -74,17 +74,30 @@ const Layout: React.FC = () => {
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
                 {isCashier && (
-                  <Link
-                    to="/"
-                    className={`${
-                      isActive('/') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
-                    } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
-                  >
-                    <ShoppingCart className={`${
-                      isActive('/') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                    } mr-3 h-5 w-5`} />
-                    Ventas
-                  </Link>
+                  <>
+                    <Link
+                      to="/"
+                      className={`${
+                        isActive('/') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                      } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                    >
+                      <ShoppingCart className={`${
+                        isActive('/') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                      } mr-3 h-5 w-5`} />
+                      Ventas
+                    </Link>
+                    <Link
+                      to="/facturas"
+                      className={`${
+                        isActive('/facturas') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                      } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                    >
+                      <Receipt className={`${
+                        isActive('/facturas') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                      } mr-3 h-5 w-5`} />
+                      Búsqueda de Facturas
+                    </Link>
+                  </>
                 )}
                 
                 {isAdmin && (
@@ -123,13 +136,24 @@ const Layout: React.FC = () => {
                       Usuarios
                     </Link>
                     <Link
-                      to="/reportes"
+                      to="/facturas"
                       className={`${
-                        isActive('/reportes') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                        isActive('/facturas') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                      } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                    >
+                      <Receipt className={`${
+                        isActive('/facturas') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                      } mr-3 h-5 w-5`} />
+                      Búsqueda de Facturas
+                    </Link>
+                    <Link
+                      to="/cierres"
+                      className={`${
+                        isActive('/cierres') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
                       } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
                     >
                       <ClipboardList className={`${
-                        isActive('/reportes') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                        isActive('/cierres') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
                       } mr-3 h-5 w-5`} />
                       Cierres de Caja
                     </Link>
@@ -152,18 +176,32 @@ const Layout: React.FC = () => {
                 </div>
                 <nav className="mt-5 px-2 space-y-1">
                   {isCashier && (
-                    <Link
-                      to="/"
-                      className={`${
-                        isActive('/') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
-                      } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <ShoppingCart className={`${
-                        isActive('/') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                      } mr-3 h-6 w-6`} />
-                      Ventas
-                    </Link>
+                    <>
+                      <Link
+                        to="/"
+                        className={`${
+                          isActive('/') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                        } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <ShoppingCart className={`${
+                          isActive('/') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                        } mr-3 h-6 w-6`} />
+                        Ventas
+                      </Link>
+                      <Link
+                        to="/facturas"
+                        className={`${
+                          isActive('/facturas') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                        } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Receipt className={`${
+                          isActive('/facturas') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                        } mr-3 h-6 w-6`} />
+                        Búsqueda de Facturas
+                      </Link>
+                    </>
                   )}
                   
                   {isAdmin && (
@@ -205,14 +243,26 @@ const Layout: React.FC = () => {
                         Usuarios
                       </Link>
                       <Link
-                        to="/reportes"
+                        to="/facturas"
                         className={`${
-                          isActive('/reportes') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                          isActive('/facturas') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                        } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Receipt className={`${
+                          isActive('/facturas') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                        } mr-3 h-6 w-6`} />
+                        Búsqueda de Facturas
+                      </Link>
+                      <Link
+                        to="/cierres"
+                        className={`${
+                          isActive('/cierres') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
                         } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <ClipboardList className={`${
-                          isActive('/reportes') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                          isActive('/cierres') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
                         } mr-3 h-6 w-6`} />
                         Cierres de Caja
                       </Link>

@@ -87,14 +87,11 @@ const UsersPage: React.FC = () => {
   return (
     <div className="container mx-auto">
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="px-4 py-5 sm:px-6">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
           <h1 className="text-lg font-medium text-gray-900 flex items-center">
             <UserCog className="h-5 w-5 mr-2 text-blue-500" />
             Gestión de Usuarios
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Administra los PINs de acceso para los usuarios del sistema
-          </p>
         </div>
 
         {success && (

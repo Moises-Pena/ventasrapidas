@@ -11,9 +11,16 @@ const LoginForm: React.FC = () => {
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
   
+  const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+    setPin(value);
+    setError('');
+  };
+  
   const handleNumberClick = (number: number) => {
     if (pin.length < 6) {
       setPin(prev => prev + number);
+      setError('');
     }
   };
   
@@ -79,14 +86,13 @@ const LoginForm: React.FC = () => {
               <div className="relative">
                 <input
                   id="pin"
-                  name="pin"
                   type="password"
                   autoComplete="current-password"
                   required
                   className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-lg text-center"
                   placeholder="Ingresa tu PIN"
                   value={pin}
-                  readOnly
+                  onChange={handlePinChange}
                   maxLength={6}
                   disabled={isLoggingIn}
                 />

@@ -281,6 +281,28 @@ export const getRegisterClosings = (): RegisterClosing[] => {
   return getItem<RegisterClosing[]>(STORAGE_KEYS.REGISTER_CLOSINGS, []);
 };
 
+export const deleteRegisterClosing = (id: string): void => {
+  const closings = getItem<RegisterClosing[]>(STORAGE_KEYS.REGISTER_CLOSINGS, []);
+  const updatedClosings = closings.filter(closing => closing.id !== id);
+  setItem(STORAGE_KEYS.REGISTER_CLOSINGS, updatedClosings);
+};
+
+export const updateRegisterClosingAmount = (id: string, newFinalAmount: number): void => {
+  const closings = getItem<RegisterClosing[]>(STORAGE_KEYS.REGISTER_CLOSINGS, []);
+  const updatedClosings = closings.map(closing => {
+    if (closing.id === id) {
+      const newDifference = newFinalAmount - (closing.initialAmount + closing.totalSales);
+      return {
+        ...closing,
+        finalAmount: newFinalAmount,
+        difference: newDifference
+      };
+    }
+    return closing;
+  });
+  setItem(STORAGE_KEYS.REGISTER_CLOSINGS, updatedClosings);
+};
+
 export const addRegisterClosing = (closing: Omit<RegisterClosing, 'id'>): RegisterClosing => {
   const closings = getItem<RegisterClosing[]>(STORAGE_KEYS.REGISTER_CLOSINGS, []);
   const newClosing: RegisterClosing = {

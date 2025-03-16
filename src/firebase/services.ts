@@ -16,6 +16,38 @@ import { db } from './config';
 import { Product, Category, Sale, CashRegister, RegisterClosing, User } from '../types';
 import { COLLECTIONS, DEFAULTS } from './settings';
 
+// Register Closings Services
+export const deleteRegisterClosing = async (id: string): Promise<void> => {
+  try {
+    await deleteDoc(doc(db, COLLECTIONS.REGISTER_CLOSINGS, id));
+  } catch (error) {
+    console.error('Error deleting register closing:', error);
+    throw error;
+  }
+};
+
+export const updateRegisterClosingAmount = async (id: string, newFinalAmount: number): Promise<void> => {
+  try {
+    const closingRef = doc(db, COLLECTIONS.REGISTER_CLOSINGS, id);
+    const closingDoc = await getDoc(closingRef);
+    
+    if (!closingDoc.exists()) {
+      throw new Error('Register closing not found');
+    }
+    
+    const data = closingDoc.data();
+    const newDifference = newFinalAmount - (data.initialAmount + data.totalSales);
+    
+    await updateDoc(closingRef, {
+      finalAmount: newFinalAmount,
+      difference: newDifference
+    });
+  } catch (error) {
+    console.error('Error updating register closing amount:', error);
+    throw error;
+  }
+};
+
 // User Services
 export const getUserByPin = async (pin: string): Promise<User | null> => {
   try {

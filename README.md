@@ -1,1 +1,3 @@
 # ventasrapidas
+
+ventasrapidas.netlify.app
