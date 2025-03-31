@@ -136,37 +136,15 @@ const Layout: React.FC = () => {
                       Usuarios
                     </Link>
                     <Link
-                      to="/facturas"
-                      className={`${
-                        isActive('/facturas') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
-                      } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
-                    >
-                      <Receipt className={`${
-                        isActive('/facturas') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                      } mr-3 h-5 w-5`} />
-                      Búsqueda de Facturas
-                    </Link>
-                    <Link
-                      to="/cierres"
-                      className={`${
-                        isActive('/cierres') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
-                      } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
-                    >
-                      <ClipboardList className={`${
-                        isActive('/cierres') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                      } mr-3 h-5 w-5`} />
-                      Cierres de Caja
-                    </Link>
-                    <Link
                       to="/reportes"
                       className={`${
                         isActive('/reportes') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
                       } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
                     >
-                      <FileText className={`${
+                      <ClipboardList className={`${
                         isActive('/reportes') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
                       } mr-3 h-5 w-5`} />
-                      Reportes de Ventas
+                      Reportes
                     </Link>
                   </>
                 )}
@@ -254,18 +232,6 @@ const Layout: React.FC = () => {
                         Usuarios
                       </Link>
                       <Link
-                        to="/facturas"
-                        className={`${
-                          isActive('/facturas') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
-                        } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <Receipt className={`${
-                          isActive('/facturas') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                        } mr-3 h-6 w-6`} />
-                        Búsqueda de Facturas
-                      </Link>
-                      <Link
                         to="/cierres"
                         className={`${
                           isActive('/cierres') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
@@ -276,18 +242,6 @@ const Layout: React.FC = () => {
                           isActive('/cierres') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
                         } mr-3 h-6 w-6`} />
                         Cierres de Caja
-                      </Link>
-                      <Link
-                        to="/reportes"
-                        className={`${
-                          isActive('/reportes') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
-                        } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <FileText className={`${
-                          isActive('/reportes') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
-                        } mr-3 h-6 w-6`} />
-                        Reportes de Ventas
                       </Link>
                     </>
                   )}

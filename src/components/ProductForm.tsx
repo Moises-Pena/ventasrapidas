@@ -6,9 +6,10 @@ interface ProductFormProps {
   product?: Product;
   categories: Category[];
   onCancel: () => void;
+  error?: string;
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, product, categories, onCancel }) => {
+const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, product, categories, onCancel, error }) => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
@@ -23,7 +24,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, product, categories
   }, [product]);
 
   const validate = (): boolean => {
-    const newErrors = { name: '', price: '' };
+    const newErrors = { name: '', price: '', submit: '' };
     let isValid = true;
 
     if (!name.trim()) {
@@ -46,9 +47,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, product, categories
     
     if (validate()) {
       onSubmit(name, parseFloat(price), categoryId);
-      setName('');
-      setPrice('');
-      setCategoryId(undefined);
     }
   };
 
@@ -62,7 +60,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, product, categories
           type="text"
           id="name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            setErrors(prev => ({ ...prev, name: '', submit: '' }));
+          }}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
         />
         {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
@@ -108,6 +109,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, product, categories
         </div>
         {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
       </div>
+      
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+          {error}
+        </div>
+      )}
 
       <div className="flex justify-end space-x-3">
         <button

@@ -7,13 +7,14 @@ import { printReceipt } from '../components/Receipt';
 
 const ReceiptsPage: React.FC = () => {
   const { sales, loading, getSales } = useSales();
+  const [refreshing, setRefreshing] = useState(false);
+  const [pageSize, setPageSize] = useState(10);
   const [searchParams, setSearchParams] = useState({
     customerName: '',
     receiptId: '',
     date: ''
   });
   const [selectedReceipts, setSelectedReceipts] = useState<string[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -24,7 +25,7 @@ const ReceiptsPage: React.FC = () => {
     }
   };
 
-  const filteredSales = sales.filter(sale => {
+  const filteredSales = sales.slice().reverse().filter(sale => {
     const matchesName = sale.customerName.toLowerCase().includes(searchParams.customerName.toLowerCase());
     const searchId = searchParams.receiptId.toLowerCase();
     const saleId = sale.id.toLowerCase();
@@ -39,6 +40,8 @@ const ReceiptsPage: React.FC = () => {
     
     return matchesName && matchesId && matchesDate;
   });
+
+  const displayedSales = filteredSales.slice(0, pageSize);
 
   const handlePrintSelected = () => {
     const selectedSales = filteredSales.filter(sale => selectedReceipts.includes(sale.id));
@@ -83,6 +86,16 @@ const ReceiptsPage: React.FC = () => {
                 <RefreshCw className={`h-4 w-4 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
                 Actualizar
               </button>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <option value={10}>10 facturas</option>
+                <option value={25}>25 facturas</option>
+                <option value={50}>50 facturas</option>
+                <option value={100}>100 facturas</option>
+              </select>
               {selectedReceipts.length > 0 && (
               <button
                 onClick={handlePrintSelected}
@@ -174,14 +187,14 @@ const ReceiptsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredSales.length === 0 ? (
+                {displayedSales.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
                       No se encontraron facturas
                     </td>
                   </tr>
                 ) : (
-                  filteredSales.map((sale) => (
+                  displayedSales.map((sale) => (
                     <tr key={sale.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <input
@@ -218,6 +231,11 @@ const ReceiptsPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          {filteredSales.length > pageSize && (
+            <div className="mt-4 text-sm text-gray-500 text-center">
+              Mostrando {displayedSales.length} de {filteredSales.length} facturas
+            </div>
+          )}
         </div>
       </div>
     </div>

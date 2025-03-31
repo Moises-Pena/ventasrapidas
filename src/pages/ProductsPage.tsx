@@ -26,18 +26,33 @@ const ProductsPage: React.FC = () => {
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   const [editingCategory, setEditingCategory] = useState<Category | undefined>(undefined);
+  const [formError, setFormError] = useState<string | undefined>(undefined);
+  const [pageSize, setPageSize] = useState(10);
 
   // Product handlers
   const handleAddProduct = async (name: string, price: number, categoryId?: string) => {
-    await addProduct(name, price, categoryId);
-    setShowProductForm(false);
+    try {
+      await addProduct(name, price, categoryId);
+      setShowProductForm(false);
+      setFormError(undefined);
+    } catch (error) {
+      if (error instanceof Error) {
+        setFormError(error.message);
+      } else {
+        setFormError('Error al agregar el producto');
+      }
+    }
   };
 
   const handleUpdateProduct = async (name: string, price: number, categoryId?: string) => {
     if (editingProduct) {
-      await updateProduct(editingProduct.id, name, price, categoryId);
-      setEditingProduct(undefined);
-      setShowProductForm(false);
+      try {
+        await updateProduct(editingProduct.id, name, price, categoryId);
+        setEditingProduct(undefined);
+        setShowProductForm(false);
+      } catch (error) {
+        throw error;
+      }
     }
   };
 
@@ -161,6 +176,7 @@ const ProductsPage: React.FC = () => {
                 product={editingProduct}
                 categories={categories}
                 onCancel={handleCancelProductForm}
+                error={formError}
               />
             </div>
           ) : (
@@ -169,6 +185,8 @@ const ProductsPage: React.FC = () => {
               categories={categories}
               onEdit={handleEditProduct}
               onDelete={handleDeleteProduct}
+              pageSize={pageSize}
+              onPageSizeChange={setPageSize}
             />
           )
         ) : (

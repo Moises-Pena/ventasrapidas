@@ -9,10 +9,8 @@ import LoadingSpinner from '../components/LoadingSpinner';
 const SalesReportsPage: React.FC = () => {
   const { sales, loading, getSales } = useSales();
   const [refreshing, setRefreshing] = useState(false);
-  const [searchParams, setSearchParams] = useState({
-    startDate: '',
-    endDate: ''
-  });
+  const [pageSize, setPageSize] = useState(10);
+  const [searchParams, setSearchParams] = useState({ startDate: '', endDate: '' });
   const [selectedSales, setSelectedSales] = useState<string[]>([]);
 
   const handleRefresh = async () => {
@@ -24,7 +22,7 @@ const SalesReportsPage: React.FC = () => {
     }
   };
 
-  const filteredSalesByDateRange = sales.filter(sale => {
+  const filteredSalesByDateRange = sales.slice().reverse().filter(sale => {
     if (!searchParams.startDate && !searchParams.endDate) {
       return true;
     }
@@ -35,6 +33,8 @@ const SalesReportsPage: React.FC = () => {
       end: searchParams.endDate ? endOfDay(parseISO(searchParams.endDate)) : endOfDay(new Date())
     });
   });
+
+  const displayedSales = filteredSalesByDateRange.slice(0, pageSize);
 
   const generatePDF = (salesToInclude: Sale[]) => {
     const doc = new jsPDF();
@@ -113,157 +113,161 @@ const SalesReportsPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <div className="flex justify-between items-center">
-            <h1 className="text-lg font-medium text-gray-900 flex items-center">
-              <FileText className="h-5 w-5 mr-2 text-blue-500" />
-              Reporte de Ventas
-            </h1>
+    <div>
+      <div className="flex justify-end items-center mb-4">
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className={`inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+              refreshing ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
+            Actualizar
+          </button>
+          <select
+            value={pageSize}
+            onChange={(e) => setPageSize(Number(e.target.value))}
+            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <option value={10}>10 reportes</option>
+            <option value={25}>25 reportes</option>
+            <option value={50}>50 reportes</option>
+            <option value={100}>100 reportes</option>
+          </select>
+        </div>
+        {selectedSales.length > 0 && (
+          <div className="ml-2">
             <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className={`inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                refreshing ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              onClick={handleDownloadSelected}
+              className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
             >
-              <RefreshCw className={`h-4 w-4 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
+              <Download className="h-4 w-4 mr-1.5" />
+              Descargar ({selectedSales.length})
             </button>
           </div>
-        </div>
-        
-        <div className="px-4 py-5 sm:p-6">
-          <div className="mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex gap-4">
-                <div>
-                  <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
-                    Fecha Inicial
-                  </label>
-                  <input
-                    type="date"
-                    id="startDate"
-                    value={searchParams.startDate}
-                    onChange={(e) => setSearchParams(prev => ({ ...prev, startDate: e.target.value }))}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
-                    Fecha Final
-                  </label>
-                  <input
-                    type="date"
-                    id="endDate"
-                    value={searchParams.endDate}
-                    onChange={(e) => setSearchParams(prev => ({ ...prev, endDate: e.target.value }))}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-            </div>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <div className="flex gap-4">
+          <div>
+            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+              Fecha Inicial
+            </label>
+            <input
+              type="date"
+              id="startDate"
+              value={searchParams.startDate}
+              onChange={(e) => setSearchParams(prev => ({ ...prev, startDate: e.target.value }))}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            />
           </div>
-          
-          {selectedSales.length > 0 && (
-            <div className="mb-4">
-              <button
-                onClick={handleDownloadSelected}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              >
-                <Download className="h-4 w-4 mr-1.5" />
-                Descargar Seleccionados ({selectedSales.length})
-              </button>
-            </div>
-          )}
-          
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <input
-                      type="checkbox"
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedSales(filteredSalesByDateRange.map(sale => sale.id));
-                        } else {
-                          setSelectedSales([]);
-                        }
-                      }}
-                      checked={selectedSales.length === filteredSalesByDateRange.length && filteredSalesByDateRange.length > 0}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fecha
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cliente
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Productos
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredSalesByDateRange.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                      No se encontraron ventas en el período seleccionado
-                    </td>
-                  </tr>
-                ) : (
-                  filteredSalesByDateRange.map((sale) => (
-                    <tr key={sale.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={selectedSales.includes(sale.id)}
-                          onChange={() => toggleSaleSelection(sale.id)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {format(new Date(sale.timestamp), 'dd/MM/yyyy HH:mm')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {sale.customerName || '-'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        <ul className="list-disc list-inside">
-                          {sale.items.map((item, idx) => (
-                            <li key={idx}>
-                              {item.quantity}x {item.product.name} (${item.product.price.toFixed(2)})
-                            </li>
-                          ))}
-                        </ul>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ${sale.total.toFixed(2)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-              <tfoot className="bg-gray-50">
-                <tr>
-                  <td colSpan={4} className="px-6 py-4 text-sm font-medium text-gray-900 text-right">
-                    Total:
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    ${filteredSalesByDateRange.reduce((sum, sale) => sum + sale.total, 0).toFixed(2)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+          <div>
+            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+              Fecha Final
+            </label>
+            <input
+              type="date"
+              id="endDate"
+              value={searchParams.endDate}
+              onChange={(e) => setSearchParams(prev => ({ ...prev, endDate: e.target.value }))}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            />
           </div>
         </div>
       </div>
+
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedSales(filteredSalesByDateRange.map(sale => sale.id));
+                    } else {
+                      setSelectedSales([]);
+                    }
+                  }}
+                  checked={selectedSales.length === filteredSalesByDateRange.length && filteredSalesByDateRange.length > 0}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Fecha
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Cliente
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Productos
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Total
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {displayedSales.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
+                  No se encontraron ventas en el período seleccionado
+                </td>
+              </tr>
+            ) : (
+              displayedSales.map((sale) => (
+                <tr key={sale.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={selectedSales.includes(sale.id)}
+                      onChange={() => toggleSaleSelection(sale.id)}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {format(new Date(sale.timestamp), 'dd/MM/yyyy HH:mm')}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {sale.customerName || '-'}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    <ul className="list-disc list-inside">
+                      {sale.items.map((item, idx) => (
+                        <li key={idx}>
+                          {item.quantity}x {item.product.name} (${item.product.price.toFixed(2)})
+                        </li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    ${sale.total.toFixed(2)}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+          <tfoot className="bg-gray-50">
+            <tr>
+              <td colSpan={4} className="px-6 py-4 text-sm font-medium text-gray-900 text-right">
+                Total:
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                ${filteredSalesByDateRange.reduce((sum, sale) => sum + sale.total, 0).toFixed(2)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      {filteredSalesByDateRange.length > pageSize && (
+        <div className="mt-4 text-sm text-gray-500 text-center">
+          Mostrando {displayedSales.length} de {filteredSalesByDateRange.length} reportes
+        </div>
+      )}
     </div>
   );
 };

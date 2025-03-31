@@ -7,8 +7,7 @@ import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import SalesPage from './pages/SalesPage';
 import ProductsPage from './pages/ProductsPage';
-import ClosingsPage from './pages/ClosingsPage';
-import SalesReportsPage from './pages/SalesReportsPage';
+import ReportsPage from './pages/ReportsPage';
 import ReceiptsPage from './pages/ReceiptsPage';
 import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
@@ -114,14 +113,9 @@ function App() {
                     <UsersPage />
                   </AdminRoute>
                 } />
-                <Route path="cierres" element={
-                  <AdminRoute>
-                    <ClosingsPage />
-                  </AdminRoute>
-                } />
                 <Route path="reportes" element={
                   <AdminRoute>
-                    <SalesReportsPage />
+                    <ReportsPage />
                   </AdminRoute>
                 } />
               </Route>

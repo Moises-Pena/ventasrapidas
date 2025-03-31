@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { useSales } from '../context/SalesContext';
-import { format } from 'date-fns';
-import { RegisterClosing } from '../types';
-import { ChevronDown, ChevronUp, Pencil, Trash2, Save, RefreshCw } from 'lucide-react';
+import { useSales } from '../context/SalesContext'; 
+import { format } from 'date-fns'; 
+import { RegisterClosing } from '../types'; 
+import { ChevronDown, ChevronUp, Pencil, Save, RefreshCw } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const ClosingsPage: React.FC = () => {
-  const { sales, registerClosings, loading, deleteRegisterClosing, updateRegisterClosingAmount, getSales } = useSales();
+  const { sales, registerClosings, loading, updateRegisterClosingAmount, getSales } = useSales();
+  const [pageSize, setPageSize] = useState(10);
   const [expandedClosing, setExpandedClosing] = useState<string | null>(null);
-  const [selectedClosings, setSelectedClosings] = useState<string[]>([]);
   const [editingClosing, setEditingClosing] = useState<string | null>(null);
   const [newAmount, setNewAmount] = useState<string>('');
   const [refreshing, setRefreshing] = useState(false);
@@ -41,13 +41,6 @@ const ClosingsPage: React.FC = () => {
     }
   };
 
-  const handleDeleteSelected = () => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar los reportes seleccionados?')) {
-      selectedClosings.forEach(id => deleteRegisterClosing(id));
-      setSelectedClosings([]);
-    }
-  };
-
   const handleEditAmount = (closing: RegisterClosing) => {
     setEditingClosing(closing.id);
     setNewAmount(closing.finalAmount.toString());
@@ -62,14 +55,6 @@ const ClosingsPage: React.FC = () => {
     }
   };
 
-  const toggleClosingSelection = (closingId: string) => {
-    setSelectedClosings(prev => 
-      prev.includes(closingId) 
-        ? prev.filter(id => id !== closingId)
-        : [...prev, closingId]
-    );
-  };
-
   if (loading) {
     return (
       <div className="container mx-auto py-12">
@@ -79,43 +64,35 @@ const ClosingsPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <div className="flex justify-between items-center">
-            <h1 className="text-lg font-medium text-gray-900">Cierres de Caja</h1>
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className={`inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                refreshing ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-            >
-              <RefreshCw className={`h-4 w-4 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
-              Actualizar
-            </button>
-          </div>
+    <div>
+      <div className="flex justify-end items-center mb-4">
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className={`inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+              refreshing ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${refreshing ? 'animate-spin' : ''}`} />
+            Actualizar
+          </button>
+          <select
+            value={pageSize}
+            onChange={(e) => setPageSize(Number(e.target.value))}
+            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <option value={10}>10 cierres</option>
+            <option value={25}>25 cierres</option>
+            <option value={50}>50 cierres</option>
+            <option value={100}>100 cierres</option>
+          </select>
         </div>
-        
-        <div className="px-4 py-5 sm:p-6">
+      </div>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <input
-                      type="checkbox"
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedClosings(registerClosings.map(c => c.id));
-                        } else {
-                          setSelectedClosings([]);
-                        }
-                      }}
-                      checked={selectedClosings.length === registerClosings.length && registerClosings.length > 0}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                  </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Fecha
                   </th>
@@ -139,35 +116,12 @@ const ClosingsPage: React.FC = () => {
                   </th>
                 </tr>
               </thead>
-              {selectedClosings.length > 0 && (
-                <thead className="bg-gray-100">
-                  <tr>
-                    <td colSpan={8} className="px-6 py-3">
-                      <button
-                        onClick={handleDeleteSelected}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                      >
-                        <Trash2 className="h-4 w-4 mr-1.5" />
-                        Eliminar seleccionados ({selectedClosings.length})
-                      </button>
-                    </td>
-                  </tr>
-                </thead>
-              )}
               <tbody className="bg-white divide-y divide-gray-200">
-                {registerClosings.slice().reverse().map((closing) => {
+                {registerClosings.slice().reverse().slice(0, pageSize).map((closing) => {
                   const closingSales = getSalesForClosing(closing);
                   return (
                     <React.Fragment key={closing.id}>
                       <tr className={expandedClosing === closing.id ? "bg-blue-50" : ""}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <input
-                            type="checkbox"
-                            checked={selectedClosings.includes(closing.id)}
-                            onChange={() => toggleClosingSelection(closing.id)}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {format(new Date(closing.closedAt), 'dd/MM/yyyy HH:mm')}
                         </td>
@@ -234,16 +188,6 @@ const ClosingsPage: React.FC = () => {
                               disabled={editingClosing === closing.id}
                             >
                               <Pencil className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (window.confirm('¿Estás seguro de que deseas eliminar este reporte?')) {
-                                  deleteRegisterClosing(closing.id);
-                                }
-                              }}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
                         </td>
@@ -340,9 +284,12 @@ const ClosingsPage: React.FC = () => {
                 )}
               </tbody>
             </table>
+            {registerClosings.length > pageSize && (
+              <div className="mt-4 text-sm text-gray-500 text-center">
+                Mostrando {Math.min(pageSize, registerClosings.length)} de {registerClosings.length} cierres
+              </div>
+            )}
           </div>
-        </div>
-      </div>
     </div>
   );
 };

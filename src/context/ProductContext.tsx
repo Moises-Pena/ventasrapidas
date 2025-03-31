@@ -57,17 +57,37 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const addProduct = async (name: string, price: number, categoryId?: string) => {
     try {
+      // Check if product with same name already exists
+      const normalizedNewName = name.trim().toLowerCase();
+      const existingProduct = products.find(
+        p => p.name.trim().toLowerCase() === normalizedNewName
+      );
+      
+      if (existingProduct) {
+        throw new Error('Ya existe un producto con este nombre');
+      }
+      
       const newProduct = await addProductService(name, price, categoryId);
       if (newProduct) {
         setProducts([...products, newProduct]);
       }
     } catch (error) {
-      console.error('Error adding product:', error);
+      throw error;
     }
   };
 
   const updateProduct = async (id: string, name: string, price: number, categoryId?: string) => {
     try {
+      // Check if another product with the same name exists (excluding current product)
+      const normalizedNewName = name.trim().toLowerCase();
+      const existingProduct = products.find(
+        p => p.id !== id && p.name.trim().toLowerCase() === normalizedNewName
+      );
+      
+      if (existingProduct) {
+        throw new Error('Ya existe un producto con este nombre');
+      }
+      
       const success = await updateProductService(id, name, price, categoryId);
       if (success) {
         setProducts(
@@ -79,7 +99,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         );
       }
     } catch (error) {
-      console.error('Error updating product:', error);
+      throw error;
     }
   };
 
