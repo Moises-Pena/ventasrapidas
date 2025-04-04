@@ -5,11 +5,13 @@ import { FileText, Download, RefreshCw } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Pagination from '../components/Pagination';
 
 const SalesReportsPage: React.FC = () => {
   const { sales, loading, getSales } = useSales();
   const [refreshing, setRefreshing] = useState(false);
   const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
   const [searchParams, setSearchParams] = useState({ startDate: '', endDate: '' });
   const [selectedSales, setSelectedSales] = useState<string[]>([]);
 
@@ -32,9 +34,12 @@ const SalesReportsPage: React.FC = () => {
       start: searchParams.startDate ? startOfDay(parseISO(searchParams.startDate)) : startOfDay(new Date(0)),
       end: searchParams.endDate ? endOfDay(parseISO(searchParams.endDate)) : endOfDay(new Date())
     });
-  });
+  }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-  const displayedSales = filteredSalesByDateRange.slice(0, pageSize);
+  const totalPages = Math.ceil(filteredSalesByDateRange.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const displayedSales = filteredSalesByDateRange.slice(startIndex, endIndex);
 
   const generatePDF = (salesToInclude: Sale[]) => {
     const doc = new jsPDF();
@@ -56,7 +61,7 @@ const SalesReportsPage: React.FC = () => {
     // Prepare table data
     const tableData = salesToInclude.map(sale => [
       format(new Date(sale.timestamp), 'dd/MM/yyyy HH:mm'),
-      sale.customerName || '-',
+      sale.customerName || 'Venta al contado',
       sale.items.map(item => `${item.quantity}x ${item.product.name}`).join('\n'),
       `$${sale.total.toFixed(2)}`
     ]);
@@ -233,7 +238,7 @@ const SalesReportsPage: React.FC = () => {
                     {format(new Date(sale.timestamp), 'dd/MM/yyyy HH:mm')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {sale.customerName || '-'}
+                    {sale.customerName || 'Venta al contado'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
                     <ul className="list-disc list-inside">
@@ -262,6 +267,15 @@ const SalesReportsPage: React.FC = () => {
             </tr>
           </tfoot>
         </table>
+        {totalPages > 1 && (
+          <div className="mt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
       </div>
       {filteredSalesByDateRange.length > pageSize && (
         <div className="mt-4 text-sm text-gray-500 text-center">

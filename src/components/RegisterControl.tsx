@@ -22,6 +22,7 @@ const RegisterControl: React.FC<RegisterControlProps> = ({ onComplete }) => {
     difference: number;
     timestamp: Date;
   } | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,8 +55,7 @@ const RegisterControl: React.FC<RegisterControlProps> = ({ onComplete }) => {
           timestamp: new Date()
         });
         
-        await closeRegister(numAmount);
-        setShowSummary(true);
+        setShowConfirmation(true);
       }
       
       setAmount('');
@@ -68,16 +68,97 @@ const RegisterControl: React.FC<RegisterControlProps> = ({ onComplete }) => {
     }
   };
 
+  const handleConfirmClose = async () => {
+    if (closingDetails) {
+      setIsProcessing(true);
+      try {
+        await closeRegister(closingDetails.finalAmount);
+        setShowConfirmation(false);
+        setShowSummary(true);
+      } catch (error) {
+        console.error('Error closing register:', error);
+        setError('Ocurrió un error al cerrar la caja');
+      } finally {
+        setIsProcessing(false);
+      }
+    }
+  };
+
+  const handleCancelClose = () => {
+    setShowConfirmation(false);
+    setClosingDetails(null);
+  };
+
   const handleFinishClosing = () => {
     setShowSummary(false);
     // Redirigir al usuario a la página de login después de cerrar la caja
     navigate('/login');
   };
 
+  const handleGoBack = () => {
+    onComplete();
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
         <LoadingSpinner size="large" />
+      </div>
+    );
+  }
+
+  if (showConfirmation && closingDetails) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+        <h2 className="text-xl font-semibold mb-4">Confirmar Cierre de Caja</h2>
+        
+        <div className="mb-6 p-4 bg-gray-50 rounded-md">
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-gray-700">Monto inicial:</span>
+              <span className="font-medium">${closingDetails.initialAmount.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-700">Total ventas:</span>
+              <span className="font-medium">${closingDetails.salesTotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between font-medium">
+              <span className="text-gray-700">Monto esperado:</span>
+              <span>${closingDetails.expectedAmount.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between font-medium">
+              <span className="text-gray-700">Monto final:</span>
+              <span>${closingDetails.finalAmount.toFixed(2)}</span>
+            </div>
+            <div className="border-t pt-2 mt-2 flex justify-between font-semibold">
+              <span>Diferencia:</span>
+              <span className={closingDetails.difference === 0 
+                ? 'text-green-600' 
+                : closingDetails.difference > 0 
+                  ? 'text-blue-600' 
+                  : 'text-red-600'
+              }>
+                ${closingDetails.difference.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={handleCancelClose}
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleConfirmClose}
+            disabled={isProcessing}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+          >
+            {isProcessing ? <LoadingSpinner size="small" color="text-white" /> : 'Confirmar Cierre'}
+          </button>
+        </div>
       </div>
     );
   }
@@ -132,20 +213,31 @@ const RegisterControl: React.FC<RegisterControlProps> = ({ onComplete }) => {
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
-      <h2 className="text-xl font-semibold mb-4">
-        {!currentRegister ? 'Abrir Caja' : 'Cerrar Caja'}
-      </h2>
-      
+    <div>
       {currentRegister && (
-        <div className="mb-4 p-4 bg-blue-50 rounded-md">
-          <p className="text-sm text-gray-600">Monto inicial: ${currentRegister.initialAmount.toFixed(2)}</p>
-          <p className="text-sm text-gray-600">Ventas del día: ${getTotalSales().toFixed(2)}</p>
-          <p className="font-medium text-gray-800">Total esperado en caja: ${(currentRegister.initialAmount + getTotalSales()).toFixed(2)}</p>
+        <div className="mb-4">
+          <button
+            onClick={handleGoBack}
+            className="inline-flex items-center px-3 py-2 text-sm text-blue-600 hover:text-blue-800"
+          >
+            ← Volver a ventas
+          </button>
         </div>
       )}
+      <div className="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+        <h2 className="text-xl font-semibold mb-4">
+          {!currentRegister ? 'Abrir Caja' : 'Cerrar Caja'}
+        </h2>
       
-      <form onSubmit={handleSubmit}>
+        {currentRegister && (
+          <div className="mb-4 p-4 bg-blue-50 rounded-md">
+            <p className="text-sm text-gray-600">Monto inicial: ${currentRegister.initialAmount.toFixed(2)}</p>
+            <p className="text-sm text-gray-600">Ventas del día: ${getTotalSales().toFixed(2)}</p>
+            <p className="font-medium text-gray-800">Total esperado en caja: ${(currentRegister.initialAmount + getTotalSales()).toFixed(2)}</p>
+          </div>
+        )}
+      
+        <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
             {!currentRegister ? 'Monto inicial en caja:' : 'Monto final en caja:'}
@@ -188,6 +280,7 @@ const RegisterControl: React.FC<RegisterControlProps> = ({ onComplete }) => {
           )}
         </button>
       </form>
+    </div>
     </div>
   );
 };

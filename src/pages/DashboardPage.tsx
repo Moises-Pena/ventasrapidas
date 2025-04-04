@@ -8,6 +8,10 @@ const DashboardPage: React.FC = () => {
   const { getDailySummary, sales, loading } = useSales();
   const [period, setPeriod] = useState('7d');
   
+  const sortedSales = sales.slice().sort((a, b) => 
+    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+  
   const getDaysForPeriod = (selectedPeriod: string): number => {
     switch (selectedPeriod) {
       case '7d':
@@ -110,7 +114,7 @@ const DashboardPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {sales.slice(-10).reverse().map((sale) => (
+                  {sortedSales.slice(0, 10).map((sale) => (
                     <tr key={sale.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {format(new Date(sale.timestamp), 'dd/MM/yyyy HH:mm')}
@@ -119,7 +123,7 @@ const DashboardPage: React.FC = () => {
                         {sale.id.substring(0, 8)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {sale.customerName || '-'}
+                        {sale.customerName || 'Venta al contado'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {sale.items.reduce((sum, item) => sum + item.quantity, 0)}

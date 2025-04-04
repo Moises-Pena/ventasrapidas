@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useProducts } from '../context/ProductContext';
 import { useSales } from '../context/SalesContext';
 import { CartItem, Product, Sale } from '../types';
-import { addHours, formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
 import Cart from '../components/Cart';
 import PaymentForm from '../components/PaymentForm';
 import Receipt from '../components/Receipt';
 import RegisterControl from '../components/RegisterControl';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { DollarSign, AlertTriangle } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const SalesPage: React.FC = () => {
@@ -21,7 +19,6 @@ const SalesPage: React.FC = () => {
     updateCartItemQuantity, 
     completeSale,
     currentRegister,
-    autoCloseWarning,
     loading: salesLoading
   } = useSales();
   
@@ -133,8 +130,7 @@ const SalesPage: React.FC = () => {
   return (
     <div className="container mx-auto">
       {currentRegister && (
-        <div className="mb-4 space-y-2">
-          <div className="flex justify-between items-center">
+        <div className="mb-4 flex justify-between items-center">
           <div className="flex items-center text-sm text-gray-600">
             <span className="mr-2">Caja abierta</span>
             <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
@@ -148,26 +144,6 @@ const SalesPage: React.FC = () => {
             <DollarSign className="h-4 w-4 mr-1" />
             Cerrar Caja
           </button>
-          </div>
-          {autoCloseWarning && (
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <AlertTriangle className="h-5 w-5 text-yellow-400" />
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-yellow-700">
-                    La caja se cerrará automáticamente en {
-                      formatDistanceToNow(addHours(new Date(currentRegister.openedAt), 24), {
-                        locale: es,
-                        addSuffix: true
-                      })
-                    }. Por favor, realice el cierre manual antes de este tiempo.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 

@@ -22,13 +22,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ cartItems, onComplete, onCanc
   const validate = (): boolean => {
     const newErrors = { amountPaid: '', customerName: '' };
     let isValid = true;
-    
-    // Validate customer name
-    if (!customerName.trim()) {
-      newErrors.customerName = 'El nombre del cliente es obligatorio';
-      isValid = false;
-    }
-    
+        
     // Validate amount paid
     const amount = parseFloat(amountPaid);
     if (!amountPaid.trim()) {
@@ -81,7 +75,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ cartItems, onComplete, onCanc
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-1">
-            Nombre del Cliente <span className="text-red-500">*</span>
+            Nombre del Cliente
           </label>
           <input
             type="text"
@@ -98,7 +92,6 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ cartItems, onComplete, onCanc
                 setErrors({...errors, customerName: ''});
               }
             }}
-            required
             disabled={isProcessing}
           />
           {errors.customerName && (

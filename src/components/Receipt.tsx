@@ -18,7 +18,7 @@ export const printReceipt = (sale: Sale): void => {
         <p>Recibo de Venta</p>
         <p>${format(new Date(sale.timestamp), 'dd/MM/yyyy HH:mm:ss')}</p>
         <p>No. ${sale.id.substring(0, 8)}</p>
-        ${sale.customerName ? `<p>Cliente: ${sale.customerName}</p>` : ''}
+        <p>Cliente: ${sale.customerName || 'Venta al contado'}</p>
       </div>
       
       <div class="divider"></div>
@@ -155,7 +155,7 @@ const Receipt: React.FC<ReceiptProps> = ({ sale, onClose }) => {
               <p>Recibo de Venta</p>
               <p>{format(new Date(sale.timestamp), 'dd/MM/yyyy HH:mm:ss')}</p>
               <p>No. {sale.id.substring(0, 8)}</p>
-              {sale.customerName && <p>Cliente: {sale.customerName}</p>}
+              <p>Cliente: {sale.customerName || 'Venta al contado'}</p>
             </div>
             
             <div className="divider"></div>

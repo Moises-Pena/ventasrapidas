@@ -4,11 +4,16 @@ import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from 'date-f
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Receipt, Printer, RefreshCw } from 'lucide-react';
 import { printReceipt } from '../components/Receipt';
+import Pagination from '../components/Pagination';
 
 const ReceiptsPage: React.FC = () => {
   const { sales, loading, getSales } = useSales();
   const [refreshing, setRefreshing] = useState(false);
   const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const sortedSales = sales.slice().sort((a, b) => 
+    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
   const [searchParams, setSearchParams] = useState({
     customerName: '',
     receiptId: '',
@@ -25,7 +30,7 @@ const ReceiptsPage: React.FC = () => {
     }
   };
 
-  const filteredSales = sales.slice().reverse().filter(sale => {
+  const filteredSales = sortedSales.filter(sale => {
     const matchesName = sale.customerName.toLowerCase().includes(searchParams.customerName.toLowerCase());
     const searchId = searchParams.receiptId.toLowerCase();
     const saleId = sale.id.toLowerCase();
@@ -41,7 +46,10 @@ const ReceiptsPage: React.FC = () => {
     return matchesName && matchesId && matchesDate;
   });
 
-  const displayedSales = filteredSales.slice(0, pageSize);
+  const totalPages = Math.ceil(filteredSales.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const displayedSales = filteredSales.slice(startIndex, endIndex);
 
   const handlePrintSelected = () => {
     const selectedSales = filteredSales.filter(sale => selectedReceipts.includes(sale.id));
@@ -211,7 +219,7 @@ const ReceiptsPage: React.FC = () => {
                         {sale.id.substring(0, 8)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {sale.customerName || '-'}
+                        {sale.customerName || 'Venta al contado'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         <ul className="list-disc list-inside">
@@ -230,12 +238,14 @@ const ReceiptsPage: React.FC = () => {
                 )}
               </tbody>
             </table>
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            )}
           </div>
-          {filteredSales.length > pageSize && (
-            <div className="mt-4 text-sm text-gray-500 text-center">
-              Mostrando {displayedSales.length} de {filteredSales.length} facturas
-            </div>
-          )}
         </div>
       </div>
     </div>

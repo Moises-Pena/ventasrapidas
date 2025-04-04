@@ -1,13 +1,22 @@
 import React, { useState } from 'react';
 import { useSales } from '../context/SalesContext'; 
-import { format } from 'date-fns'; 
+import { format, isWithinInterval, startOfDay, endOfDay, parseISO } from 'date-fns'; 
 import { RegisterClosing } from '../types'; 
 import { ChevronDown, ChevronUp, Pencil, Save, RefreshCw } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Pagination from '../components/Pagination';
 
 const ClosingsPage: React.FC = () => {
   const { sales, registerClosings, loading, updateRegisterClosingAmount, getSales } = useSales();
   const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useState({
+    startDate: '',
+    endDate: ''
+  });
+  const sortedClosings = registerClosings.slice().sort((a, b) => 
+    new Date(b.closedAt).getTime() - new Date(a.closedAt).getTime()
+  );
   const [expandedClosing, setExpandedClosing] = useState<string | null>(null);
   const [editingClosing, setEditingClosing] = useState<string | null>(null);
   const [newAmount, setNewAmount] = useState<string>('');
@@ -21,6 +30,23 @@ const ClosingsPage: React.FC = () => {
       setRefreshing(false);
     }
   };
+
+  const filteredClosings = sortedClosings.filter(closing => {
+    if (!searchParams.startDate && !searchParams.endDate) {
+      return true;
+    }
+    
+    const closingDate = new Date(closing.closedAt);
+    return isWithinInterval(closingDate, {
+      start: searchParams.startDate ? startOfDay(parseISO(searchParams.startDate)) : startOfDay(new Date(0)),
+      end: searchParams.endDate ? endOfDay(parseISO(searchParams.endDate)) : endOfDay(new Date())
+    });
+  });
+
+  const totalPages = Math.ceil(filteredClosings.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const displayedClosings = filteredClosings.slice(startIndex, endIndex);
 
   // Get sales for a specific register closing
   const getSalesForClosing = (closing: RegisterClosing): any[] => {
@@ -89,8 +115,38 @@ const ClosingsPage: React.FC = () => {
           </select>
         </div>
       </div>
+      
+      <div className="mb-6">
+        <div className="flex gap-4">
+          <div>
+            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+              Fecha Inicial
+            </label>
+            <input
+              type="date"
+              id="startDate"
+              value={searchParams.startDate}
+              onChange={(e) => setSearchParams(prev => ({ ...prev, startDate: e.target.value }))}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+              Fecha Final
+            </label>
+            <input
+              type="date"
+              id="endDate"
+              value={searchParams.endDate}
+              onChange={(e) => setSearchParams(prev => ({ ...prev, endDate: e.target.value }))}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            />
+          </div>
+        </div>
+      </div>
+
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table className="min-w-full divide-y divide-gray-200 mb-4">
               <thead className="bg-gray-50">
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -117,7 +173,7 @@ const ClosingsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {registerClosings.slice().reverse().slice(0, pageSize).map((closing) => {
+                {displayedClosings.map((closing) => {
                   const closingSales = getSalesForClosing(closing);
                   return (
                     <React.Fragment key={closing.id}>
@@ -284,10 +340,12 @@ const ClosingsPage: React.FC = () => {
                 )}
               </tbody>
             </table>
-            {registerClosings.length > pageSize && (
-              <div className="mt-4 text-sm text-gray-500 text-center">
-                Mostrando {Math.min(pageSize, registerClosings.length)} de {registerClosings.length} cierres
-              </div>
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
             )}
           </div>
     </div>

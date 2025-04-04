@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Product, Category } from '../types';
 import { Edit, Trash2 } from 'lucide-react';
+import Pagination from './Pagination';
 
 interface ProductListProps {
   products: Product[];
@@ -19,6 +20,13 @@ const ProductList: React.FC<ProductListProps> = ({
   pageSize,
   onPageSizeChange
 }) => {
+  const [currentPage, setCurrentPage] = React.useState(1);
+  
+  // Reset to first page when products array changes (e.g., when filtering)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [products]);
+  
   // Function to get category name by id
   const getCategoryName = (categoryId?: string): string => {
     if (!categoryId) return 'Sin categoría';
@@ -26,7 +34,10 @@ const ProductList: React.FC<ProductListProps> = ({
     return category ? category.name : 'Sin categoría';
   };
   
-  const displayedProducts = products.slice(0, pageSize);
+  const totalPages = Math.ceil(products.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const displayedProducts = products.slice(startIndex, endIndex);
 
   return (
     <div className="overflow-x-auto">
@@ -109,11 +120,18 @@ const ProductList: React.FC<ProductListProps> = ({
           )}
         </tbody>
       </table>
-      {products.length > pageSize && (
-        <div className="px-6 py-3 text-sm text-gray-500">
-          Mostrando {Math.min(pageSize, products.length)} de {products.length} productos
+      {totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       )}
+      <div className="mt-4 text-sm text-gray-500 text-center">
+        Mostrando {displayedProducts.length} de {products.length} productos
+      </div>
     </div>
   );
 };

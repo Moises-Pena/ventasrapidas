@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Sale, CartItem, CashRegister, DailySummary, RegisterClosing } from '../types';
 import { useAuth } from './AuthContext';
 import { format } from 'date-fns';
-import { addHours, isAfter } from 'date-fns';
 import {
   getSales,
   deleteRegisterClosing as deleteRegisterClosingService,
@@ -46,34 +45,6 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [registerClosings, setRegisterClosings] = useState<RegisterClosing[]>([]);
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
-  const [autoCloseWarning, setAutoCloseWarning] = useState(false);
-
-  // Check if register needs to be closed automatically
-  useEffect(() => {
-    if (!currentRegister) return;
-
-    const closeTime = addHours(new Date(currentRegister.openedAt), 24);
-    const now = new Date();
-
-    // If less than 1 hour until auto-close, show warning
-    if (isAfter(now, addHours(closeTime, -1))) {
-      setAutoCloseWarning(true);
-    }
-
-    // If past 24 hours, close register automatically
-    if (isAfter(now, closeTime)) {
-      closeRegister(currentRegister.initialAmount);
-    }
-
-    const timer = setInterval(() => {
-      const currentTime = new Date();
-      if (isAfter(currentTime, closeTime)) {
-        closeRegister(currentRegister.initialAmount);
-      }
-    }, 60000); // Check every minute
-
-    return () => clearInterval(timer);
-  }, [currentRegister]);
 
   const loadSales = async () => {
     try {
@@ -336,7 +307,6 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         registerClosings,
         cart,
         loading,
-        autoCloseWarning,
         getSales: loadSales,
         addToCart, 
         removeFromCart, 

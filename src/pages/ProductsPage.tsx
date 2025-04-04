@@ -28,6 +28,16 @@ const ProductsPage: React.FC = () => {
   const [editingCategory, setEditingCategory] = useState<Category | undefined>(undefined);
   const [formError, setFormError] = useState<string | undefined>(undefined);
   const [pageSize, setPageSize] = useState(10);
+  const [searchParams, setSearchParams] = useState({
+    name: '',
+    categoryId: ''
+  });
+
+  const filteredProducts = products.filter(product => {
+    const matchesName = product.name.toLowerCase().includes(searchParams.name.toLowerCase());
+    const matchesCategory = !searchParams.categoryId || product.categoryId === searchParams.categoryId;
+    return matchesName && matchesCategory;
+  });
 
   // Product handlers
   const handleAddProduct = async (name: string, price: number, categoryId?: string) => {
@@ -119,15 +129,41 @@ const ProductsPage: React.FC = () => {
         <div className="px-4 py-5 sm:px-6">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-lg font-medium text-gray-900">Gestión de Productos y Categorías</h1>
+            {activeTab === 'products' && !showProductForm && (
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Buscar producto..."
+                    value={searchParams.name}
+                    onChange={(e) => setSearchParams(prev => ({ ...prev, name: e.target.value }))}
+                    className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <select
+                    value={searchParams.categoryId}
+                    onChange={(e) => setSearchParams(prev => ({ ...prev, categoryId: e.target.value }))}
+                    className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Todas las categorías</option>
+                    {categories.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={() => setShowProductForm(true)}
+                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  disabled={showProductForm}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Nuevo Producto
+                </button>
+              </div>
+            )}
             {activeTab === 'products' ? (
-              <button
-                onClick={() => setShowProductForm(true)}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                disabled={showProductForm}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Nuevo Producto
-              </button>
+              !showProductForm && null
             ) : (
               <button
                 onClick={() => setShowCategoryForm(true)}
@@ -181,7 +217,7 @@ const ProductsPage: React.FC = () => {
             </div>
           ) : (
             <ProductList
-              products={products}
+              products={filteredProducts}
               categories={categories}
               onEdit={handleEditProduct}
               onDelete={handleDeleteProduct}
