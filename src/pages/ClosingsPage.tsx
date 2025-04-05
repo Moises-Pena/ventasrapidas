@@ -50,13 +50,18 @@ const ClosingsPage: React.FC = () => {
 
   // Get sales for a specific register closing
   const getSalesForClosing = (closing: RegisterClosing): any[] => {
-    return sales.filter(sale => {
+    const filteredSales = sales.filter(sale => {
       const saleDate = new Date(sale.timestamp);
       const openDate = new Date(closing.openedAt);
       const closeDate = new Date(closing.closedAt);
       
       return saleDate >= openDate && saleDate <= closeDate;
     });
+    
+    // Sort sales by timestamp in descending order (most recent first)
+    return filteredSales.sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
   };
 
   const toggleClosingDetails = (closingId: string) => {
@@ -292,7 +297,7 @@ const ClosingsPage: React.FC = () => {
                                             {sale.id.substring(0, 8)}
                                           </td>
                                           <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500">
-                                            {sale.customerName || '-'}
+                                            {sale.customerName || 'Venta al contado'}
                                           </td>
                                           <td className="px-4 py-2 text-xs text-gray-500">
                                             <ul className="list-disc list-inside">
