@@ -39,6 +39,11 @@ const ProductsPage: React.FC = () => {
     return matchesName && matchesCategory;
   });
 
+  // Get unique categories for the filter dropdown
+  const uniqueCategories = Array.from(new Set(categories.map(cat => cat.id)))
+    .map(id => categories.find(cat => cat.id === id))
+    .filter((cat): cat is Category => cat !== undefined);
+
   // Product handlers
   const handleAddProduct = async (name: string, price: number, categoryId?: string) => {
     try {
@@ -145,7 +150,7 @@ const ProductsPage: React.FC = () => {
                     className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="">Todas las categorías</option>
-                    {categories.map(category => (
+                    {uniqueCategories.map(category => (
                       <option key={category.id} value={category.id}>
                         {category.name}
                       </option>

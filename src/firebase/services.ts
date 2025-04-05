@@ -1,7 +1,8 @@
 import { 
   collection, 
   doc, 
-  setDoc, 
+  setDoc,
+  getDoc,
   getDoc, 
   getDocs, 
   updateDoc, 
@@ -15,6 +16,34 @@ import {
 import { db } from './config';
 import { Product, Category, Sale, CashRegister, RegisterClosing, User } from '../types';
 import { COLLECTIONS, DEFAULTS } from './settings';
+
+const getNextReceiptId = async (): Promise<string> => {
+  const counterRef = doc(db, 'counters', 'receipts');
+  const counterDoc = await getDoc(counterRef);
+  
+  let currentValue = 1;
+  let currentLength = 8; // Default starting length
+  
+  if (counterDoc.exists()) {
+    const data = counterDoc.data();
+    currentValue = data.currentValue + 1;
+    currentLength = data.currentLength || 8;
+    
+    // Check if we need to increase the length
+    const maxValue = Math.pow(10, currentLength) - 1;
+    if (currentValue > maxValue) {
+      currentLength++;
+      console.log(`Increasing receipt ID length to ${currentLength} digits`);
+    }
+  }
+  
+  await setDoc(counterRef, { 
+    currentValue,
+    currentLength
+  });
+  
+  return currentValue.toString().padStart(currentLength, '0');
+};
 
 // Register Closings Services
 export const deleteRegisterClosing = async (id: string): Promise<void> => {
@@ -335,16 +364,17 @@ export const getSales = async (): Promise<Sale[]> => {
 
 export const addSale = async (sale: Omit<Sale, 'id'>): Promise<Sale | null> => {
   try {
+    const nextId = await getNextReceiptId();
     const saleData = {
       ...sale,
       timestamp: Timestamp.fromDate(sale.timestamp)
     };
     
-    const docRef = await addDoc(collection(db, COLLECTIONS.SALES), saleData);
+    await setDoc(doc(db, COLLECTIONS.SALES, nextId), saleData);
     
     return {
       ...sale,
-      id: docRef.id
+      id: nextId
     };
   } catch (error) {
     console.error('Error adding sale:', error);

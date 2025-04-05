@@ -294,7 +294,7 @@ const ClosingsPage: React.FC = () => {
                                             {format(new Date(sale.timestamp), 'HH:mm:ss')}
                                           </td>
                                           <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500">
-                                            {sale.id.substring(0, 8)}
+                                            {sale.id}
                                           </td>
                                           <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500">
                                             {sale.customerName || 'Venta al contado'}

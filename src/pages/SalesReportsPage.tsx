@@ -238,6 +238,9 @@ const SalesReportsPage: React.FC = () => {
                     {format(new Date(sale.timestamp), 'dd/MM/yyyy HH:mm')}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {sale.id}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {sale.customerName || 'Venta al contado'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
