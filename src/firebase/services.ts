@@ -17,6 +17,8 @@ import { db } from './config';
 import { Product, Category, Sale, CashRegister, RegisterClosing, User } from '../types';
 import { COLLECTIONS, DEFAULTS } from './settings';
 
+// Genera el próximo ID de recibo único en formato numérico con longitud controlada.
+// Obtiene el valor actual del contador desde Firestore, lo incrementa, y ajusta la longitud del ID si se ha alcanzado el máximo valor posible con la longitud actual.
 const getNextReceiptId = async (): Promise<string> => {
   const counterRef = doc(db, 'counters', 'receipts');
   const counterDoc = await getDoc(counterRef);
@@ -36,6 +38,7 @@ const getNextReceiptId = async (): Promise<string> => {
       console.log(`Increasing receipt ID length to ${currentLength} digits`);
     }
   }
+
   
   await setDoc(counterRef, { 
     currentValue,
