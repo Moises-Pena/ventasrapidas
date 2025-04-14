@@ -9,17 +9,43 @@ interface CategoryListProps {
   onDelete: (id: string) => void;
 }
 
+/**
+ * Componente que muestra una tabla con la lista de categorías.
+ * Incluye paginación y botones para editar o eliminar cada categoría.
+ */
 const CategoryList: React.FC<CategoryListProps> = ({ 
   categories, 
   onEdit, 
   onDelete 
 }) => {
+  /**
+   * Estado que mantiene la página actual mostrada en la tabla.
+   */
   const [currentPage, setCurrentPage] = React.useState(1);
+
+  /**
+   * Cantidad de elementos mostrados por página.
+   */
   const pageSize = 10;
-  
+
+  /**
+   * Calcula el número total de páginas según la cantidad de categorías y el tamaño de página.
+   */
   const totalPages = Math.ceil(categories.length / pageSize);
+
+  /**
+   * Índice de inicio para el corte del arreglo según la página actual.
+   */
   const startIndex = (currentPage - 1) * pageSize;
+
+  /**
+   * Índice de fin para el corte del arreglo según la página actual.
+   */
   const endIndex = startIndex + pageSize;
+
+  /**
+   * Arreglo de categorías que se mostrarán en la página actual.
+   */
   const displayedCategories = categories.slice(startIndex, endIndex);
 
   return (
@@ -49,6 +75,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
               </td>
             </tr>
           ) : (
+            // Mapea y renderiza cada categoría como una fila de la tabla, con opciones de edición y eliminación
             displayedCategories.map((category) => (
               <tr key={category.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

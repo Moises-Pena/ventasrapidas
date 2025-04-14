@@ -8,8 +8,9 @@ interface ReceiptProps {
   onClose: () => void;
 }
 
+// Función que genera y maneja la impresión del recibo de la venta
 export const printReceipt = (sale: Sale): void => {
-  // Create a temporary div to hold the receipt content
+  // Crea un div temporal para contener el contenido del recibo
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = `
     <div class="receipt-paper">
@@ -60,7 +61,7 @@ export const printReceipt = (sale: Sale): void => {
     </div>
   `;
 
-  // Create a temporary iframe for printing
+  // Crea un iframe temporal para realizar la impresión
   const iframe = document.createElement('iframe');
   iframe.style.display = 'none';
   document.body.appendChild(iframe);
@@ -115,21 +116,23 @@ export const printReceipt = (sale: Sale): void => {
 
   printDocument.close();
 
-  // Wait for content to load
+  // Espera a que el contenido se cargue en el iframe
   iframe.onload = () => {
-    // Use the native print dialog
+    // Abre el cuadro de diálogo de impresión nativo
     iframe.contentWindow?.print();
 
-    // Remove the iframe after printing
+    // Elimina el iframe después de la impresión
     setTimeout(() => {
       document.body.removeChild(iframe);
     }, 1000);
   };
 };
 
+// Componente que renderiza el recibo de venta y permite imprimirlo o cerrarlo
 const Receipt: React.FC<ReceiptProps> = ({ sale, onClose }) => {
   const receiptRef = useRef<HTMLDivElement>(null);
 
+  // Manejador de evento para imprimir el recibo
   const handlePrint = () => {
     printReceipt(sale);
   };

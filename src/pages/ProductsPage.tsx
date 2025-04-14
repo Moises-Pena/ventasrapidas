@@ -9,6 +9,7 @@ import { Plus, Tag, Package } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const ProductsPage: React.FC = () => {
+  // Obtiene los productos, categorías, y los métodos para manejar productos y categorías desde el contexto de productos.
   const { 
     products, 
     categories,
@@ -20,7 +21,8 @@ const ProductsPage: React.FC = () => {
     updateCategory,
     deleteCategory
   } = useProducts();
-  
+
+  // Establece los estados locales para manejar las pestañas activas, formularios, y otros estados.
   const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
@@ -33,18 +35,24 @@ const ProductsPage: React.FC = () => {
     categoryId: ''
   });
 
+  // Filtra los productos según los parámetros de búsqueda (nombre y categoría)
   const filteredProducts = products.filter(product => {
     const matchesName = product.name.toLowerCase().includes(searchParams.name.toLowerCase());
     const matchesCategory = !searchParams.categoryId || product.categoryId === searchParams.categoryId;
     return matchesName && matchesCategory;
   });
 
-  // Get unique categories for the filter dropdown
+  // Obtiene las categorías únicas para el filtro del dropdown
   const uniqueCategories = Array.from(new Set(categories.map(cat => cat.id)))
     .map(id => categories.find(cat => cat.id === id))
     .filter((cat): cat is Category => cat !== undefined);
 
-  // Product handlers
+  // **Manejadores de Productos**
+
+  /**
+   * Manejador para agregar un nuevo producto.
+   * Recibe el nombre, precio y categoría del producto, y luego lo agrega mediante el método `addProduct`.
+   */
   const handleAddProduct = async (name: string, price: number, categoryId?: string) => {
     try {
       await addProduct(name, price, categoryId);
@@ -59,6 +67,10 @@ const ProductsPage: React.FC = () => {
     }
   };
 
+  /**
+   * Manejador para actualizar un producto existente.
+   * Si hay un producto siendo editado, lo actualiza con los nuevos valores proporcionados.
+   */
   const handleUpdateProduct = async (name: string, price: number, categoryId?: string) => {
     if (editingProduct) {
       try {
@@ -71,28 +83,49 @@ const ProductsPage: React.FC = () => {
     }
   };
 
+  /**
+   * Manejador para editar un producto específico.
+   * Establece el producto en el estado `editingProduct` y muestra el formulario para editarlo.
+   */
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
     setShowProductForm(true);
   };
 
+  /**
+   * Manejador para eliminar un producto.
+   * Solicita confirmación antes de proceder con la eliminación del producto.
+   */
   const handleDeleteProduct = async (id: string) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este producto?')) {
       await deleteProduct(id);
     }
   };
 
+  /**
+   * Manejador para cancelar el formulario de producto (ya sea al agregar o editar).
+   * Restaura los estados relacionados con el producto y oculta el formulario.
+   */
   const handleCancelProductForm = () => {
     setEditingProduct(undefined);
     setShowProductForm(false);
   };
 
-  // Category handlers
+  // **Manejadores de Categorías**
+
+  /**
+   * Manejador para agregar una nueva categoría.
+   * Recibe el nombre de la categoría y la agrega mediante el método `addCategory`.
+   */
   const handleAddCategory = async (name: string) => {
     await addCategory(name);
     setShowCategoryForm(false);
   };
 
+  /**
+   * Manejador para actualizar una categoría existente.
+   * Si hay una categoría siendo editada, la actualiza con el nuevo nombre.
+   */
   const handleUpdateCategory = async (name: string) => {
     if (editingCategory) {
       await updateCategory(editingCategory.id, name);
@@ -101,11 +134,20 @@ const ProductsPage: React.FC = () => {
     }
   };
 
+  /**
+   * Manejador para editar una categoría específica.
+   * Establece la categoría en el estado `editingCategory` y muestra el formulario para editarla.
+   */
   const handleEditCategory = (category: Category) => {
     setEditingCategory(category);
     setShowCategoryForm(true);
   };
 
+  /**
+   * Manejador para eliminar una categoría.
+   * Solicita confirmación antes de proceder con la eliminación de la categoría.
+   * Si la categoría tiene productos asociados, muestra una alerta.
+   */
   const handleDeleteCategory = async (id: string) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar esta categoría?')) {
       const success = await deleteCategory(id);
@@ -115,11 +157,16 @@ const ProductsPage: React.FC = () => {
     }
   };
 
+  /**
+   * Manejador para cancelar el formulario de categoría (ya sea al agregar o editar).
+   * Restaura los estados relacionados con la categoría y oculta el formulario.
+   */
   const handleCancelCategoryForm = () => {
     setEditingCategory(undefined);
     setShowCategoryForm(false);
   };
 
+  // Si los datos están cargando, muestra un spinner de carga.
   if (loading) {
     return (
       <div className="container mx-auto py-12">
@@ -128,6 +175,7 @@ const ProductsPage: React.FC = () => {
     );
   }
 
+  // Renderiza la página de productos y categorías, dependiendo de la pestaña activa
   return (
     <div className="container mx-auto">
       <div className="bg-white rounded-lg shadow-md overflow-hidden">

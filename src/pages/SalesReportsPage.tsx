@@ -9,12 +9,23 @@ import Pagination from '../components/Pagination';
 
 const SalesReportsPage: React.FC = () => {
   const { sales, loading, getSales } = useSales();
+
+  // Estado para controlar si el componente está en proceso de actualización
   const [refreshing, setRefreshing] = useState(false);
+
+  // Estado que define cuántos reportes se muestran por página
   const [pageSize, setPageSize] = useState(10);
+
+  // Página actual del paginador
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Parámetros de búsqueda de fecha para filtrar las ventas
   const [searchParams, setSearchParams] = useState({ startDate: '', endDate: '' });
+
+  // Ventas seleccionadas manualmente por el usuario para exportación
   const [selectedSales, setSelectedSales] = useState<string[]>([]);
 
+  // Refresca la lista de ventas desde la fuente de datos
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
@@ -24,11 +35,12 @@ const SalesReportsPage: React.FC = () => {
     }
   };
 
+  // Filtra las ventas por el rango de fechas especificado
   const filteredSalesByDateRange = sales.slice().reverse().filter(sale => {
     if (!searchParams.startDate && !searchParams.endDate) {
       return true;
     }
-    
+
     const saleDate = new Date(sale.timestamp);
     return isWithinInterval(saleDate, {
       start: searchParams.startDate ? startOfDay(parseISO(searchParams.startDate)) : startOfDay(new Date(0)),
@@ -36,37 +48,45 @@ const SalesReportsPage: React.FC = () => {
     });
   }).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
+  // Calcula el número total de páginas en base a las ventas filtradas y el tamaño de página seleccionado
   const totalPages = Math.ceil(filteredSalesByDateRange.length / pageSize);
+
+  // Determina el índice de inicio para la paginación de ventas
   const startIndex = (currentPage - 1) * pageSize;
+
+  // Determina el índice final para la paginación de ventas
   const endIndex = startIndex + pageSize;
+
+  // Obtiene el subconjunto de ventas a mostrar en la página actual
   const displayedSales = filteredSalesByDateRange.slice(startIndex, endIndex);
 
+  // Genera y descarga un PDF con las ventas especificadas
   const generatePDF = (salesToInclude: Sale[]) => {
     const doc = new jsPDF();
-    
+
     const totalAmount = salesToInclude.reduce((sum, sale) => sum + sale.total, 0);
     const title = 'Reporte de Ventas';
     const period = searchParams.startDate && searchParams.endDate
       ? `Período: ${format(parseISO(searchParams.startDate), 'dd/MM/yyyy')} - ${format(parseISO(searchParams.endDate), 'dd/MM/yyyy')}`
       : 'Período: Todas las ventas';
-    
-    // Add title
+
+    // Añade el título al PDF
     doc.setFontSize(16);
     doc.text(title, doc.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
-    
-    // Add period
+
+    // Añade el período de reporte al PDF
     doc.setFontSize(12);
     doc.text(period, doc.internal.pageSize.getWidth() / 2, 30, { align: 'center' });
-    
-    // Prepare table data
+
+    // Prepara los datos para la tabla
     const tableData = salesToInclude.map(sale => [
       format(new Date(sale.timestamp), 'dd/MM/yyyy HH:mm'),
       sale.customerName || 'Venta al contado',
       sale.items.map(item => `${item.quantity}x ${item.product.name}`).join('\n'),
       `$${sale.total.toFixed(2)}`
     ]);
-    
-    // Add table
+
+    // Inserta la tabla al PDF
     (doc as any).autoTable({
       startY: 40,
       head: [['Fecha', 'Cliente', 'Productos', 'Total']],
@@ -81,34 +101,38 @@ const SalesReportsPage: React.FC = () => {
         3: { cellWidth: 30, halign: 'right' }
       }
     });
-    
-    // Add summary
+
+    // Añade un resumen con el total de ventas y cantidad
     const finalY = (doc as any).lastAutoTable.finalY || 40;
     doc.setFontSize(11);
     doc.text(`Total de Ventas: $${totalAmount.toFixed(2)}`, doc.internal.pageSize.getWidth() - 20, finalY + 10, { align: 'right' });
     doc.text(`Cantidad de Ventas: ${salesToInclude.length}`, doc.internal.pageSize.getWidth() - 20, finalY + 20, { align: 'right' });
-    
-    // Save the PDF
+
+    // Descarga el archivo PDF generado
     doc.save(`reporte-ventas-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
   };
 
+  // Descarga un PDF con todas las ventas filtradas
   const handleDownloadAll = () => {
     generatePDF(filteredSalesByDateRange);
   };
 
+  // Descarga un PDF con las ventas seleccionadas manualmente
   const handleDownloadSelected = () => {
     const selectedSalesData = filteredSalesByDateRange.filter(sale => selectedSales.includes(sale.id));
     generatePDF(selectedSalesData);
   };
 
+  // Añade o quita una venta del array de seleccionados
   const toggleSaleSelection = (saleId: string) => {
-    setSelectedSales(prev => 
-      prev.includes(saleId) 
+    setSelectedSales(prev =>
+      prev.includes(saleId)
         ? prev.filter(id => id !== saleId)
         : [...prev, saleId]
     );
   };
 
+  // Renderiza un spinner de carga si los datos aún se están obteniendo
   if (loading) {
     return (
       <div className="container mx-auto py-12">
@@ -119,6 +143,7 @@ const SalesReportsPage: React.FC = () => {
 
   return (
     <div>
+      {/* Controles de actualización, tamaño de página y descarga */}
       <div className="flex justify-end items-center mb-4">
         <div className="flex items-center space-x-2">
           <button
@@ -155,6 +180,7 @@ const SalesReportsPage: React.FC = () => {
         )}
       </div>
 
+      {/* Filtros por fecha */}
       <div className="mb-6">
         <div className="flex gap-4">
           <div>
@@ -184,11 +210,12 @@ const SalesReportsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Tabla de resultados */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3">
                 <input
                   type="checkbox"
                   onChange={(e) => {
@@ -202,18 +229,10 @@ const SalesReportsPage: React.FC = () => {
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Fecha
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Cliente
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Productos
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Total
-              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Productos</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -226,7 +245,7 @@ const SalesReportsPage: React.FC = () => {
             ) : (
               displayedSales.map((sale) => (
                 <tr key={sale.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4">
                     <input
                       type="checkbox"
                       checked={selectedSales.includes(sale.id)}
@@ -234,13 +253,10 @@ const SalesReportsPage: React.FC = () => {
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500">
                     {format(new Date(sale.timestamp), 'dd/MM/yyyy HH:mm')}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {sale.id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500">
                     {sale.customerName || 'Venta al contado'}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
@@ -252,7 +268,7 @@ const SalesReportsPage: React.FC = () => {
                       ))}
                     </ul>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     ${sale.total.toFixed(2)}
                   </td>
                 </tr>
@@ -264,12 +280,14 @@ const SalesReportsPage: React.FC = () => {
               <td colSpan={4} className="px-6 py-4 text-sm font-medium text-gray-900 text-right">
                 Total:
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              <td className="px-6 py-4 text-sm font-medium text-gray-900">
                 ${filteredSalesByDateRange.reduce((sum, sale) => sum + sale.total, 0).toFixed(2)}
               </td>
             </tr>
           </tfoot>
         </table>
+
+        {/* Paginación si hay más de una página */}
         {totalPages > 1 && (
           <div className="mt-4">
             <Pagination
@@ -280,6 +298,8 @@ const SalesReportsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Información adicional sobre cantidad de reportes mostrados */}
       {filteredSalesByDateRange.length > pageSize && (
         <div className="mt-4 text-sm text-gray-500 text-center">
           Mostrando {displayedSales.length} de {filteredSalesByDateRange.length} reportes

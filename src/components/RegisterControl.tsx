@@ -8,12 +8,13 @@ interface RegisterControlProps {
   onComplete: () => void;
 }
 
+// Componente principal para manejar la apertura y cierre de caja
 const RegisterControl: React.FC<RegisterControlProps> = ({ onComplete }) => {
   const { currentRegister, openRegister, closeRegister, getTotalSales, loading } = useSales();
-  const [amount, setAmount] = useState('');
-  const [error, setError] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showSummary, setShowSummary] = useState(false);
+  const [amount, setAmount] = useState(''); // Estado para el monto ingresado
+  const [error, setError] = useState(''); // Estado para mostrar mensajes de error
+  const [isProcessing, setIsProcessing] = useState(false); // Estado que indica si el proceso está en ejecución
+  const [showSummary, setShowSummary] = useState(false); // Estado para mostrar el resumen del cierre
   const [closingDetails, setClosingDetails] = useState<{
     initialAmount: number;
     salesTotal: number;
@@ -21,10 +22,11 @@ const RegisterControl: React.FC<RegisterControlProps> = ({ onComplete }) => {
     finalAmount: number;
     difference: number;
     timestamp: Date;
-  } | null>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
+  } | null>(null); // Estado con los detalles del cierre de caja
+  const [showConfirmation, setShowConfirmation] = useState(false); // Estado para mostrar la confirmación de cierre
   const navigate = useNavigate();
 
+  // Maneja el submit del formulario de apertura o cierre de caja
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = parseFloat(amount);
@@ -37,15 +39,16 @@ const RegisterControl: React.FC<RegisterControlProps> = ({ onComplete }) => {
     setIsProcessing(true);
     try {
       if (!currentRegister) {
-        // Opening register
+        // Si no hay un registro abierto, abre la caja con el monto proporcionado
         await openRegister(numAmount);
         onComplete();
       } else {
-        // Closing register
+        // Si ya hay un registro abierto, procede a cerrar la caja
         const salesTotal = getTotalSales();
         const expectedAmount = currentRegister.initialAmount + salesTotal;
         const difference = numAmount - expectedAmount;
         
+        // Establece los detalles del cierre
         setClosingDetails({
           initialAmount: currentRegister.initialAmount,
           salesTotal,
@@ -58,47 +61,51 @@ const RegisterControl: React.FC<RegisterControlProps> = ({ onComplete }) => {
         setShowConfirmation(true);
       }
       
-      setAmount('');
-      setError('');
+      setAmount(''); // Reinicia el monto
+      setError(''); // Reinicia los errores
     } catch (error) {
       console.error('Error processing register operation:', error);
       setError('Ocurrió un error. Inténtalo de nuevo.');
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false); // Finaliza el proceso
     }
   };
 
+  // Maneja la confirmación para cerrar la caja
   const handleConfirmClose = async () => {
     if (closingDetails) {
       setIsProcessing(true);
       try {
-        await closeRegister(closingDetails.finalAmount);
-        setShowConfirmation(false);
-        setShowSummary(true);
+        await closeRegister(closingDetails.finalAmount); // Cierra la caja con el monto final
+        setShowConfirmation(false); // Oculta la confirmación
+        setShowSummary(true); // Muestra el resumen
       } catch (error) {
         console.error('Error closing register:', error);
         setError('Ocurrió un error al cerrar la caja');
       } finally {
-        setIsProcessing(false);
+        setIsProcessing(false); // Finaliza el proceso
       }
     }
   };
 
+  // Cancela el proceso de cierre de caja
   const handleCancelClose = () => {
-    setShowConfirmation(false);
-    setClosingDetails(null);
+    setShowConfirmation(false); // Oculta la confirmación
+    setClosingDetails(null); // Reinicia los detalles del cierre
   };
 
+  // Finaliza el proceso de cierre de caja y redirige al login
   const handleFinishClosing = () => {
-    setShowSummary(false);
-    // Redirigir al usuario a la página de login después de cerrar la caja
-    navigate('/login');
+    setShowSummary(false); // Oculta el resumen
+    navigate('/login'); // Redirige al login
   };
 
+  // Regresa al proceso de ventas
   const handleGoBack = () => {
     onComplete();
   };
 
+  // Si el sistema está cargando, muestra un spinner de carga
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -107,6 +114,7 @@ const RegisterControl: React.FC<RegisterControlProps> = ({ onComplete }) => {
     );
   }
 
+  // Si se está mostrando la confirmación de cierre de caja
   if (showConfirmation && closingDetails) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
@@ -163,6 +171,7 @@ const RegisterControl: React.FC<RegisterControlProps> = ({ onComplete }) => {
     );
   }
 
+  // Si se muestra el resumen del cierre de caja
   if (showSummary && closingDetails) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
@@ -212,6 +221,7 @@ const RegisterControl: React.FC<RegisterControlProps> = ({ onComplete }) => {
     );
   }
 
+  // Si no hay un registro de caja, permite abrir o cerrar la caja esto en caso de clickear el boton de cerrar caja por error.
   return (
     <div>
       {currentRegister && (

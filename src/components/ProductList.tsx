@@ -21,13 +21,13 @@ const ProductList: React.FC<ProductListProps> = ({
   onPageSizeChange
 }) => {
   const [currentPage, setCurrentPage] = React.useState(1);
-  
-  // Reset to first page when products array changes (e.g., when filtering)
+
+  // useEffect que reinicia la página a la primera cuando la lista de productos cambia
   useEffect(() => {
     setCurrentPage(1);
   }, [products]);
-  
-  // Function to get category name by id
+
+  // Función para obtener el nombre de la categoría usando el id de la categoría
   const getCategoryName = (categoryId?: string): string => {
     if (!categoryId) return 'Sin categoría';
     const category = categories.find(cat => cat.id === categoryId);

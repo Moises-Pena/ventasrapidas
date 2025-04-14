@@ -9,12 +9,14 @@ interface ProductFormProps {
   error?: string;
 }
 
+// Componente que muestra y gestiona un formulario para crear o editar productos.
 const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, product, categories, onCancel, error }) => {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
   const [errors, setErrors] = useState({ name: '', price: '' });
 
+  // useEffect que carga los datos del producto si se está editando uno existente.
   useEffect(() => {
     if (product) {
       setName(product.name);
@@ -23,6 +25,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, product, categories
     }
   }, [product]);
 
+  // Valida los campos del formulario asegurando que el nombre y el precio sean válidos.
   const validate = (): boolean => {
     const newErrors = { name: '', price: '', submit: '' };
     let isValid = true;
@@ -42,9 +45,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, product, categories
     return isValid;
   };
 
+  // Maneja el evento de envío del formulario. Si la validación es exitosa, llama a onSubmit.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (validate()) {
       onSubmit(name, parseFloat(price), categoryId);
     }
@@ -109,7 +113,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ onSubmit, product, categories
         </div>
         {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
       </div>
-      
+
       {error && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
           {error}

@@ -7,21 +7,25 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
+// Componente de paginación que permite al usuario navegar entre múltiples páginas.
+// Muestra hasta 5 botones de página visibles y botones para avanzar/retroceder.
 const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPageChange }) => {
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
   
-  // Show only 5 page numbers at a time
+  // Retorna un subconjunto de páginas a mostrar en pantalla (máximo 5).
+  // Muestra las primeras o últimas páginas completas según la posición del usuario.
   const getVisiblePages = () => {
     if (totalPages <= 5) return pages;
-    
+
     if (currentPage <= 3) return pages.slice(0, 5);
     if (currentPage >= totalPages - 2) return pages.slice(totalPages - 5);
-    
+
     return pages.slice(currentPage - 3, currentPage + 2);
   };
 
   return (
     <div className="flex items-center justify-center space-x-2 mt-4">
+      {/* Botón para retroceder una página */}
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
@@ -30,6 +34,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         <ChevronLeft className="h-4 w-4" />
       </button>
       
+      {/* Mostrar botón para ir a la primera página si el usuario está lejos del inicio */}
       {currentPage > 3 && totalPages > 5 && (
         <>
           <button
@@ -42,6 +47,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         </>
       )}
       
+      {/* Botones dinámicos para las páginas visibles */}
       {getVisiblePages().map(page => (
         <button
           key={page}
@@ -56,6 +62,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         </button>
       ))}
       
+      {/* Mostrar botón para ir a la última página si el usuario está lejos del final */}
       {currentPage < totalPages - 2 && totalPages > 5 && (
         <>
           <span className="text-gray-500">...</span>
@@ -68,6 +75,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
         </>
       )}
       
+      {/* Botón para avanzar una página */}
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}

@@ -4,6 +4,7 @@ import { ShoppingCart, Delete } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 
+// Componente funcional que representa un formulario de inicio de sesión mediante un PIN numérico.
 const LoginForm: React.FC = () => {
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
@@ -11,12 +12,14 @@ const LoginForm: React.FC = () => {
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
   
+  // Maneja el cambio de valor en el campo de entrada del PIN, asegurando que solo se ingresen números y hasta 6 dígitos.
   const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, 6);
     setPin(value);
     setError('');
   };
   
+  // Agrega un número al PIN actual cuando se hace clic en un botón del teclado numérico.
   const handleNumberClick = (number: number) => {
     if (pin.length < 6) {
       setPin(prev => prev + number);
@@ -24,14 +27,17 @@ const LoginForm: React.FC = () => {
     }
   };
   
+  // Elimina el último dígito del PIN.
   const handleDelete = () => {
     setPin(prev => prev.slice(0, -1));
   };
   
+  // Limpia completamente el PIN ingresado.
   const handleClear = () => {
     setPin('');
   };
 
+  // Maneja el envío del formulario, validando el PIN e intentando iniciar sesión con él.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (pin.length < 4) {
@@ -55,6 +61,7 @@ const LoginForm: React.FC = () => {
     }
   };
 
+  // Muestra un spinner de carga si el sistema de autenticación aún se está cargando.
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -77,12 +84,11 @@ const LoginForm: React.FC = () => {
             Ingresa tu PIN para acceder
           </p>
         </div>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="pin" className="sr-only">
-                PIN
-              </label>
+              <label htmlFor="pin" className="sr-only">PIN</label>
               <div className="relative">
                 <input
                   id="pin"
@@ -98,7 +104,7 @@ const LoginForm: React.FC = () => {
                 />
               </div>
             
-              {/* Numeric Keypad */}
+              {/* Teclado numérico */}
               <div className="mt-6 grid grid-cols-3 gap-3">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((number) => (
                   <button

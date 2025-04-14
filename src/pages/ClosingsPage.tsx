@@ -8,32 +8,37 @@ import Pagination from '../components/Pagination';
 
 const ClosingsPage: React.FC = () => {
   const { sales, registerClosings, loading, updateRegisterClosingAmount, getSales } = useSales();
-  const [pageSize, setPageSize] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10); // Estado para el número de registros por página
+  const [currentPage, setCurrentPage] = useState(1); // Estado para la página actual
   const [searchParams, setSearchParams] = useState({
     startDate: '',
     endDate: ''
-  });
+  }); // Estado para los parámetros de búsqueda (fechas de inicio y fin)
+  
+  // Ordena los cierres de caja por fecha de cierre (de más reciente a más antiguo)
   const sortedClosings = registerClosings.slice().sort((a, b) => 
     new Date(b.closedAt).getTime() - new Date(a.closedAt).getTime()
   );
-  const [expandedClosing, setExpandedClosing] = useState<string | null>(null);
-  const [editingClosing, setEditingClosing] = useState<string | null>(null);
-  const [newAmount, setNewAmount] = useState<string>('');
-  const [refreshing, setRefreshing] = useState(false);
+  
+  const [expandedClosing, setExpandedClosing] = useState<string | null>(null); // Estado para el cierre de caja expandido
+  const [editingClosing, setEditingClosing] = useState<string | null>(null); // Estado para el cierre de caja en edición
+  const [newAmount, setNewAmount] = useState<string>(''); // Estado para el nuevo monto a editar
+  const [refreshing, setRefreshing] = useState(false); // Estado para manejar la actualización de datos
 
+  // Función para refrescar los datos de las ventas
   const handleRefresh = async () => {
-    setRefreshing(true);
+    setRefreshing(true); // Establece el estado de refresco como verdadero
     try {
-      await getSales();
+      await getSales(); // Obtiene las ventas actualizadas
     } finally {
-      setRefreshing(false);
+      setRefreshing(false); // Vuelve a poner el estado de refresco en falso después de obtener los datos
     }
   };
 
+  // Filtra los cierres de caja según las fechas de inicio y fin
   const filteredClosings = sortedClosings.filter(closing => {
     if (!searchParams.startDate && !searchParams.endDate) {
-      return true;
+      return true; // Si no hay fechas de filtro, muestra todos los cierres
     }
     
     const closingDate = new Date(closing.closedAt);
@@ -43,50 +48,55 @@ const ClosingsPage: React.FC = () => {
     });
   });
 
+  // Calcula el número total de páginas necesarias para la paginación
   const totalPages = Math.ceil(filteredClosings.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
-  const displayedClosings = filteredClosings.slice(startIndex, endIndex);
+  const displayedClosings = filteredClosings.slice(startIndex, endIndex); // Extrae los cierres de la página actual
 
-  // Get sales for a specific register closing
+  // Función para obtener las ventas correspondientes a un cierre de caja específico
   const getSalesForClosing = (closing: RegisterClosing): any[] => {
     const filteredSales = sales.filter(sale => {
       const saleDate = new Date(sale.timestamp);
       const openDate = new Date(closing.openedAt);
       const closeDate = new Date(closing.closedAt);
       
-      return saleDate >= openDate && saleDate <= closeDate;
+      return saleDate >= openDate && saleDate <= closeDate; // Filtra las ventas dentro del rango de fechas del cierre
     });
     
-    // Sort sales by timestamp in descending order (most recent first)
+    // Ordena las ventas por la fecha de creación (de más reciente a más antiguo)
     return filteredSales.sort((a, b) => 
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
   };
 
+  // Función para alternar el detalle de un cierre (expandir o contraer)
   const toggleClosingDetails = (closingId: string) => {
     if (expandedClosing === closingId) {
-      setExpandedClosing(null);
+      setExpandedClosing(null); // Contrae el detalle si el cierre ya está expandido
     } else {
-      setExpandedClosing(closingId);
+      setExpandedClosing(closingId); // Expande el detalle si el cierre no está expandido
     }
   };
 
+  // Función para comenzar a editar el monto final de un cierre
   const handleEditAmount = (closing: RegisterClosing) => {
-    setEditingClosing(closing.id);
-    setNewAmount(closing.finalAmount.toString());
+    setEditingClosing(closing.id); // Establece el cierre en edición
+    setNewAmount(closing.finalAmount.toString()); // Establece el monto a editar
   };
 
+  // Función para guardar el monto final editado de un cierre
   const handleSaveAmount = (closingId: string) => {
-    const amount = parseFloat(newAmount);
-    if (!isNaN(amount) && amount >= 0) {
-      updateRegisterClosingAmount(closingId, amount);
-      setEditingClosing(null);
-      setNewAmount('');
+    const amount = parseFloat(newAmount); // Convierte el monto ingresado en un número flotante
+    if (!isNaN(amount) && amount >= 0) { // Verifica que el monto sea válido y positivo
+      updateRegisterClosingAmount(closingId, amount); // Actualiza el monto en el cierre
+      setEditingClosing(null); // Termina la edición
+      setNewAmount(''); // Resetea el valor del monto
     }
   };
 
   if (loading) {
+    // Muestra un spinner de carga mientras los datos se están cargando
     return (
       <div className="container mx-auto py-12">
         <LoadingSpinner size="large" />
@@ -120,7 +130,7 @@ const ClosingsPage: React.FC = () => {
           </select>
         </div>
       </div>
-      
+
       <div className="mb-6">
         <div className="flex gap-4">
           <div>
@@ -150,209 +160,209 @@ const ClosingsPage: React.FC = () => {
         </div>
       </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 mb-4">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fecha
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Inicial
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ventas
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Final
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Diferencia
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Detalles
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Acciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {displayedClosings.map((closing) => {
-                  const closingSales = getSalesForClosing(closing);
-                  return (
-                    <React.Fragment key={closing.id}>
-                      <tr className={expandedClosing === closing.id ? "bg-blue-50" : ""}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {format(new Date(closing.closedAt), 'dd/MM/yyyy HH:mm')}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          ${closing.initialAmount.toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 min-w-[120px]">
-                          ${closing.totalSales.toFixed(2)} ({closing.salesCount})
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {editingClosing === closing.id ? (
-                            <div className="flex items-center space-x-2">
-                              <input
-                                type="number"
-                                value={newAmount}
-                                onChange={(e) => setNewAmount(e.target.value)}
-                                className="w-24 px-2 py-1 border border-gray-300 rounded-md text-sm"
-                                step="0.01"
-                                min="0"
-                              />
-                              <button
-                                onClick={() => handleSaveAmount(closing.id)}
-                                className="text-green-600 hover:text-green-800"
-                              >
-                                <Save className="h-4 w-4" />
-                              </button>
-                            </div>
-                          ) : (
-                            `$${closing.finalAmount.toFixed(2)}`
-                          )}
-                        </td>
-                        <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
-                          closing.difference === 0 
-                            ? 'text-green-600' 
-                            : closing.difference > 0 
-                              ? 'text-blue-600' 
-                              : 'text-red-600'
-                        }`}>
-                          ${closing.difference.toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <button 
-                            onClick={() => toggleClosingDetails(closing.id)}
-                            className="text-blue-600 hover:text-blue-800 flex items-center"
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200 mb-4">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Fecha
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Inicial
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Ventas
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Final
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Diferencia
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Detalles
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {displayedClosings.map((closing) => {
+              const closingSales = getSalesForClosing(closing);
+              return (
+                <React.Fragment key={closing.id}>
+                  <tr className={expandedClosing === closing.id ? "bg-blue-50" : ""}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {format(new Date(closing.closedAt), 'dd/MM/yyyy HH:mm')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      ${closing.initialAmount.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 min-w-[120px]">
+                      ${closing.totalSales.toFixed(2)} ({closing.salesCount})
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {editingClosing === closing.id ? (
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            value={newAmount}
+                            onChange={(e) => setNewAmount(e.target.value)}
+                            className="w-24 px-2 py-1 border border-gray-300 rounded-md text-sm"
+                            step="0.01"
+                            min="0"
+                          />
+                          <button
+                            onClick={() => handleSaveAmount(closing.id)}
+                            className="text-green-600 hover:text-green-800"
                           >
-                            {expandedClosing === closing.id ? (
-                              <>
-                                <ChevronUp className="h-4 w-4 mr-1" />
-                                Ocultar
-                              </>
-                            ) : (
-                              <>
-                                <ChevronDown className="h-4 w-4 mr-1" />
-                                Ver
-                              </>
-                            )}
+                            <Save className="h-4 w-4" />
                           </button>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => handleEditAmount(closing)}
-                              className="text-blue-600 hover:text-blue-800"
-                              disabled={editingClosing === closing.id}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                      {expandedClosing === closing.id && (
-                        <tr>
-                          <td colSpan={8} className="px-6 py-4">
-                            <div className="bg-gray-50 p-4 rounded-md">
-                              <h3 className="text-sm font-medium text-gray-900 mb-2">
-                                Detalle de Ventas
-                              </h3>
-                              <div className="text-xs text-gray-500 mb-2">
-                                <p>Apertura: {format(new Date(closing.openedAt), 'dd/MM/yyyy HH:mm')}</p>
-                                <p>Cierre: {format(new Date(closing.closedAt), 'dd/MM/yyyy HH:mm')}</p>
-                              </div>
-                              
-                              {closingSales.length > 0 ? (
-                                <div className="mt-3 overflow-x-auto">
-                                  <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-100">
-                                      <tr>
-                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                          Hora
-                                        </th>
-                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                          ID
-                                        </th>
-                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                          Cliente
-                                        </th>
-                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                          Productos
-                                        </th>
-                                        <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                          Total
-                                        </th>
-                                      </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                      {closingSales.map((sale) => (
-                                        <tr key={sale.id}>
-                                          <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500">
-                                            {format(new Date(sale.timestamp), 'HH:mm:ss')}
-                                          </td>
-                                          <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500">
-                                            {sale.id}
-                                          </td>
-                                          <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500">
-                                            {sale.customerName || 'Venta al contado'}
-                                          </td>
-                                          <td className="px-4 py-2 text-xs text-gray-500">
-                                            <ul className="list-disc list-inside">
-                                              {sale.items.map((item, idx) => (
-                                                <li key={idx}>
-                                                  {item.quantity}x {item.product.name} (${item.product.price.toFixed(2)})
-                                                </li>
-                                              ))}
-                                            </ul>
-                                          </td>
-                                          <td className="px-4 py-2 whitespace-nowrap text-xs font-medium text-gray-900">
-                                            ${sale.total.toFixed(2)}
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                    <tfoot className="bg-gray-50">
-                                      <tr>
-                                        <td colSpan={4} className="px-4 py-2 text-xs font-medium text-gray-700 text-right">
-                                          Total de ventas:
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-xs font-medium text-gray-900">
-                                          ${closing.totalSales.toFixed(2)}
-                                        </td>
-                                      </tr>
-                                    </tfoot>
-                                  </table>
-                                </div>
-                              ) : (
-                                <p className="text-sm text-gray-500 italic">No se registraron ventas durante este período.</p>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
+                        </div>
+                      ) : (
+                        `$${closing.finalAmount.toFixed(2)}`
                       )}
-                    </React.Fragment>
-                  );
-                })}
-                {registerClosings.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">
-                      No hay cierres de caja registrados
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
+                      closing.difference === 0 
+                        ? 'text-green-600' 
+                        : closing.difference > 0 
+                          ? 'text-blue-600' 
+                          : 'text-red-600'
+                    }`}>
+                      ${closing.difference.toFixed(2)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <button 
+                        onClick={() => toggleClosingDetails(closing.id)}
+                        className="text-blue-600 hover:text-blue-800 flex items-center"
+                      >
+                        {expandedClosing === closing.id ? (
+                          <>
+                            <ChevronUp className="h-4 w-4 mr-1" />
+                            Ocultar
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="h-4 w-4 mr-1" />
+                            Ver
+                          </>
+                        )}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleEditAmount(closing)}
+                          className="text-blue-600 hover:text-blue-800"
+                          disabled={editingClosing === closing.id}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
+                  {expandedClosing === closing.id && (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-4">
+                        <div className="bg-gray-50 p-4 rounded-md">
+                          <h3 className="text-sm font-medium text-gray-900 mb-2">
+                            Detalle de Ventas
+                          </h3>
+                          <div className="text-xs text-gray-500 mb-2">
+                            <p>Apertura: {format(new Date(closing.openedAt), 'dd/MM/yyyy HH:mm')}</p>
+                            <p>Cierre: {format(new Date(closing.closedAt), 'dd/MM/yyyy HH:mm')}</p>
+                          </div>
+                          
+                          {closingSales.length > 0 ? (
+                            <div className="mt-3 overflow-x-auto">
+                              <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-100">
+                                  <tr>
+                                    <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      Hora
+                                    </th>
+                                    <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      ID
+                                    </th>
+                                    <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      Cliente
+                                    </th>
+                                    <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      Productos
+                                    </th>
+                                    <th scope="col" className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                      Total
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                  {closingSales.map((sale) => (
+                                    <tr key={sale.id}>
+                                      <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500">
+                                        {format(new Date(sale.timestamp), 'HH:mm:ss')}
+                                      </td>
+                                      <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500">
+                                        {sale.id}
+                                      </td>
+                                      <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500">
+                                        {sale.customerName || 'Venta al contado'}
+                                      </td>
+                                      <td className="px-4 py-2 text-xs text-gray-500">
+                                        <ul className="list-disc list-inside">
+                                          {sale.items.map((item, idx) => (
+                                            <li key={idx}>
+                                              {item.quantity}x {item.product.name} (${item.product.price.toFixed(2)})
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </td>
+                                      <td className="px-4 py-2 whitespace-nowrap text-xs font-medium text-gray-900">
+                                        ${sale.total.toFixed(2)}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                                <tfoot className="bg-gray-50">
+                                  <tr>
+                                    <td colSpan={4} className="px-4 py-2 text-xs font-medium text-gray-700 text-right">
+                                      Total de ventas:
+                                    </td>
+                                    <td className="px-4 py-2 whitespace-nowrap text-xs font-medium text-gray-900">
+                                      ${closing.totalSales.toFixed(2)}
+                                    </td>
+                                  </tr>
+                                </tfoot>
+                              </table>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 italic">No se registraron ventas durante este período.</p>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+            {registerClosings.length === 0 && (
+              <tr>
+                <td colSpan={8} className="px-6 py-4 text-center text-sm text-gray-500">
+                  No hay cierres de caja registrados
+                </td>
+              </tr>
             )}
-          </div>
+          </tbody>
+        </table>
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
+      </div>
     </div>
   );
 };

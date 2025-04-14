@@ -8,7 +8,16 @@ interface CartProps {
   onRemove: (productId: string) => void;
 }
 
+/**
+ * Componente funcional que representa el carrito de compras.
+ * Muestra los productos agregados, permite actualizar la cantidad de cada uno y eliminarlos del carrito.
+ * También calcula y muestra el total de la compra.
+ */
 const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove }) => {
+
+  /**
+   * Calcula el total del carrito sumando el precio de cada producto multiplicado por su cantidad.
+   */
   const total = items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
@@ -26,6 +35,7 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove }) => {
             No hay productos en el carrito
           </div>
         ) : (
+          // Renderiza cada producto en el carrito con controles para modificar su cantidad o eliminarlo
           items.map((item) => (
             <div key={item.product.id} className="px-4 py-3 flex justify-between items-center">
               <div className="flex-1 pr-2">
@@ -33,6 +43,7 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove }) => {
                 <p className="text-sm text-gray-500">${item.product.price.toFixed(2)} x {item.quantity}</p>
               </div>
               <div className="flex items-center space-x-2">
+                {/* Botón para disminuir la cantidad del producto */}
                 <button
                   onClick={() => onUpdateQuantity(item.product.id, item.quantity - 1)}
                   className="p-1 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100"
@@ -40,12 +51,14 @@ const Cart: React.FC<CartProps> = ({ items, onUpdateQuantity, onRemove }) => {
                   <Minus className="h-4 w-4" />
                 </button>
                 <span className="text-gray-700 w-6 text-center">{item.quantity}</span>
+                {/* Botón para aumentar la cantidad del producto */}
                 <button
                   onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}
                   className="p-1 rounded-full text-gray-400 hover:text-gray-500 hover:bg-gray-100"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
+                {/* Botón para eliminar el producto del carrito */}
                 <button
                   onClick={() => onRemove(item.product.id)}
                   className="p-1 rounded-full text-red-400 hover:text-red-500 hover:bg-red-50"

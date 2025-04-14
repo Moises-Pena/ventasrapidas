@@ -15,6 +15,7 @@ import {
   addRegisterClosing
 } from '../firebase/services';
 
+// Tipo de contexto para las operaciones de ventas
 interface SalesContextType {
   sales: Sale[];
   currentRegister: CashRegister | null;
@@ -38,6 +39,7 @@ interface SalesContextType {
 
 const SalesContext = createContext<SalesContextType | undefined>(undefined);
 
+// Proveedor que gestiona el estado global de las ventas
 export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -46,6 +48,7 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
 
+  // Carga las ventas desde la base de datos
   const loadSales = async () => {
     try {
       const salesData = await getSales();
@@ -55,7 +58,7 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Load sales, register, and closings from Firestore
+  // Carga las ventas, el registro y los cierres de caja desde Firestore al iniciar
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -75,6 +78,7 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loadData();
   }, []);
 
+  // Agrega un artículo al carrito. Si ya existe, solo actualiza la cantidad
   const addToCart = (item: CartItem) => {
     const existingItemIndex = cart.findIndex(
       cartItem => cartItem.product.id === item.product.id
@@ -89,10 +93,12 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Elimina un artículo del carrito por su ID de producto
   const removeFromCart = (productId: string) => {
     setCart(cart.filter(item => item.product.id !== productId));
   };
 
+  // Actualiza la cantidad de un artículo en el carrito
   const updateCartItemQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
@@ -108,10 +114,12 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
   };
 
+  // Limpia el carrito de compras
   const clearCart = () => {
     setCart([]);
   };
 
+  // Completa la venta: crea una venta, actualiza el registro de caja y limpia el carrito
   const completeSale = async (amountPaid: number, customerName: string = ''): Promise<Sale | null> => {
     if (!currentUser) {
       throw new Error('No user is logged in');
@@ -137,15 +145,15 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     try {
-      // Add sale to Firestore
+      // Agrega la venta a la base de datos
       const savedSale = await addSale(newSale);
       
       if (savedSale) {
-        // Update sales state
+        // Actualiza las ventas en el estado
         const updatedSales = [...sales, savedSale];
         setSales(updatedSales);
         
-        // Update current register with the new sale
+        // Actualiza el registro de caja con la nueva venta
         await updateRegisterSales(currentRegister.id, savedSale);
         
         const updatedRegister = {
@@ -154,7 +162,7 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         };
         setCurrentRegister(updatedRegister);
         
-        // Clear the cart after completing the sale
+        // Limpia el carrito después de completar la venta
         clearCart();
         
         return savedSale;
@@ -167,6 +175,7 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Abre el registro de caja con un monto inicial
   const openRegister = async (initialAmount: number) => {
     if (!currentUser) {
       throw new Error('No user is logged in');
@@ -183,6 +192,7 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Cierra el registro de caja, crea un cierre de caja y actualiza el estado
   const closeRegister = async (finalAmount: number) => {
     if (!currentRegister) {
       throw new Error('No register is currently open');
@@ -198,10 +208,10 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const expectedAmount = currentRegister.initialAmount + totalSales;
       const difference = finalAmount - expectedAmount;
       
-      // Close register in Firestore
+      // Cierra el registro de caja en Firestore
       await closeRegisterService(currentRegister.id, finalAmount);
       
-      // Create a register closing record
+      // Crea un registro de cierre de caja
       const newClosing: Omit<RegisterClosing, 'id'> = {
         registerId: currentRegister.id,
         openedAt: currentRegister.openedAt,
@@ -215,26 +225,27 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         cashierId: currentUser.id
       };
       
-      // Add register closing to Firestore
+      // Agrega el cierre de caja a Firestore
       const savedClosing = await addRegisterClosing(newClosing);
       
       if (savedClosing) {
-        // Update register closings state
+        // Actualiza el estado de los cierres de caja
         const updatedClosings = [...registerClosings, savedClosing];
         setRegisterClosings(updatedClosings);
       }
       
-      // Clear current register
+      // Limpia el registro de caja actual
       setCurrentRegister(null);
     } catch (error) {
       console.error('Error closing register:', error);
     }
   };
 
+  // Obtiene el resumen diario de ventas para los últimos días
   const getDailySummary = (days: number): DailySummary[] => {
     const summary: Record<string, DailySummary> = {};
     
-    // Initialize the last 'days' days with zero values
+    // Inicializa los últimos 'days' días con valores en cero
     for (let i = 0; i < days; i++) {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -246,7 +257,7 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       };
     }
     
-    // Fill in actual sales data
+    // Rellena con los datos de ventas reales
     sales.forEach(sale => {
       const dateStr = format(new Date(sale.timestamp), 'yyyy-MM-dd');
       if (summary[dateStr]) {
@@ -255,22 +266,25 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     });
     
-    // Convert to array and sort by date
+    // Convierte el objeto a array y lo ordena por fecha
     return Object.values(summary).sort((a, b) => 
       a.date.localeCompare(b.date)
     );
   };
 
+  // Obtiene el total de ventas del registro actual
   const getTotalSales = (): number => {
     if (!currentRegister) return 0;
     return currentRegister.sales.reduce((sum, sale) => sum + sale.total, 0);
   };
 
+  // Obtiene el número de ventas realizadas en el registro actual
   const getSaleCount = (): number => {
     if (!currentRegister) return 0;
     return currentRegister.sales.length;
   };
 
+  // Elimina un cierre de caja por su ID
   const deleteRegisterClosing = (id: string) => {
     try {
       deleteRegisterClosingService(id);
@@ -280,6 +294,7 @@ export const SalesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Actualiza el monto final de un cierre de caja
   const updateRegisterClosingAmount = (id: string, newFinalAmount: number) => {
     try {
       updateRegisterClosingAmountService(id, newFinalAmount);

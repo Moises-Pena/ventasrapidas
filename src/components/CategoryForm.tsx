@@ -7,16 +7,29 @@ interface CategoryFormProps {
   onCancel: () => void;
 }
 
+/**
+ * Componente de formulario para agregar o editar una categoría.
+ * Permite ingresar un nombre de categoría, valida el campo y ejecuta acciones de envío o cancelación.
+ */
 const CategoryForm: React.FC<CategoryFormProps> = ({ onSubmit, category, onCancel }) => {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
 
+  /**
+   * Efecto que se ejecuta cuando se proporciona una categoría como prop.
+   * Si existe una categoría, rellena el campo de nombre con su valor.
+   */
   useEffect(() => {
     if (category) {
       setName(category.name);
     }
   }, [category]);
 
+  /**
+   * Función que valida que el campo de nombre no esté vacío.
+   * Si no es válido, establece un mensaje de error.
+   * @returns true si el nombre es válido, false si está vacío.
+   */
   const validate = (): boolean => {
     if (!name.trim()) {
       setError('El nombre de la categoría es requerido');
@@ -25,6 +38,13 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ onSubmit, category, onCance
     return true;
   };
 
+  /**
+   * Función que maneja el envío del formulario.
+   * Previene el comportamiento por defecto, valida el formulario,
+   * y si es válido, ejecuta la función `onSubmit` con el nombre.
+   * También limpia el campo y los errores.
+   * @param e Evento de envío del formulario.
+   */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     

@@ -13,6 +13,7 @@ const UsersPage: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
+  // Carga la lista de usuarios desde Firebase al montar el componente
   useEffect(() => {
     const loadUsers = async () => {
       try {
@@ -28,6 +29,7 @@ const UsersPage: React.FC = () => {
     loadUsers();
   }, []);
 
+  // Inicia el modo de edición de PIN para un usuario específico
   const handleEditUser = (userId: string) => {
     setEditingUser(userId);
     setNewPin('');
@@ -36,6 +38,7 @@ const UsersPage: React.FC = () => {
     setSuccess('');
   };
 
+  // Cancela la edición de PIN y limpia los campos
   const handleCancelEdit = () => {
     setEditingUser(null);
     setNewPin('');
@@ -43,8 +46,9 @@ const UsersPage: React.FC = () => {
     setError('');
   };
 
+  // Guarda el nuevo PIN del usuario, luego de validar los campos
   const handleSavePin = async (userId: string) => {
-    // Validate PIN
+    // Validación del PIN
     if (newPin.length < 4) {
       setError('El PIN debe tener al menos 4 dígitos');
       return;
@@ -59,7 +63,7 @@ const UsersPage: React.FC = () => {
       setLoading(true);
       await updateUserPin(userId, newPin);
       
-      // Update local state
+      // Actualiza el estado local con el nuevo PIN
       setUsers(users.map(user => 
         user.id === userId ? { ...user, pin: newPin } : user
       ));
@@ -76,6 +80,7 @@ const UsersPage: React.FC = () => {
     }
   };
 
+  // Renderiza el spinner de carga si los usuarios aún no se han cargado
   if (loading && users.length === 0) {
     return (
       <div className="container mx-auto py-12">
@@ -84,6 +89,7 @@ const UsersPage: React.FC = () => {
     );
   }
 
+  // Render principal de la página de gestión de usuarios
   return (
     <div className="container mx-auto">
       <div className="bg-white rounded-lg shadow-md overflow-hidden">

@@ -5,16 +5,19 @@ interface LoadingSpinnerProps {
   color?: string;
 }
 
+// Componente funcional que representa un spinner de carga personalizable por tamaño y color.
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
   size = 'medium', 
   color = 'text-blue-500' 
 }) => {
+  // Define las clases CSS correspondientes a cada tamaño del spinner.
   const sizeClasses = {
     small: 'w-5 h-5',
     medium: 'w-8 h-8',
     large: 'w-12 h-12'
   };
 
+  // Renderiza el spinner con el tamaño y color especificados.
   return (
     <div className="flex justify-center items-center">
       <div className={`${sizeClasses[size]} ${color} animate-spin`}>

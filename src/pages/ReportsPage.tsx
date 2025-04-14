@@ -4,9 +4,11 @@ import ClosingsPage from './ClosingsPage';
 import SalesReportsPage from './SalesReportsPage';
 import ReceiptsPage from './ReceiptsPage';
 
+// Tipo que define las posibles pestañas: 'closings', 'sales', o 'receipts'.
 type TabType = 'closings' | 'sales' | 'receipts';
 
 const ReportsPage: React.FC = () => {
+  // Estado que maneja la pestaña activa, con valor inicial 'closings'.
   const [activeTab, setActiveTab] = useState<TabType>('closings');
 
   return (
@@ -19,6 +21,7 @@ const ReportsPage: React.FC = () => {
           
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
+              {/* Botón para seleccionar la pestaña de Cierres de Caja */}
               <button
                 onClick={() => setActiveTab('closings')}
                 className={`${
@@ -30,6 +33,8 @@ const ReportsPage: React.FC = () => {
                 <ClipboardList className="h-4 w-4 mr-2" />
                 Cierres de Caja
               </button>
+              
+              {/* Botón para seleccionar la pestaña de Reportes de Ventas */}
               <button
                 onClick={() => setActiveTab('sales')}
                 className={`${
@@ -41,6 +46,8 @@ const ReportsPage: React.FC = () => {
                 <FileText className="h-4 w-4 mr-2" />
                 Reportes de Ventas
               </button>
+              
+              {/* Botón para seleccionar la pestaña de Búsqueda de Facturas */}
               <button
                 onClick={() => setActiveTab('receipts')}
                 className={`${
@@ -57,6 +64,7 @@ const ReportsPage: React.FC = () => {
         </div>
         
         <div className="px-4 py-5 sm:p-6">
+          {/* Renderiza el componente correspondiente según la pestaña activa */}
           {activeTab === 'closings' ? (
             <ClosingsPage />
           ) : activeTab === 'sales' ? (

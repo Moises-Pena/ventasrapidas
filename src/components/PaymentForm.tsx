@@ -8,22 +8,23 @@ interface PaymentFormProps {
   onCancel: () => void;
 }
 
+// Componente que gestiona el formulario de pago, incluyendo validación, cálculo de cambio y envío del formulario.
 const PaymentForm: React.FC<PaymentFormProps> = ({ cartItems, onComplete, onCancel }) => {
   const total = cartItems.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
-  
+
   const [amountPaid, setAmountPaid] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [errors, setErrors] = useState({ amountPaid: '', customerName: '' });
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Valida el formulario antes de enviar: asegura que se haya ingresado un monto válido y suficiente.
   const validate = (): boolean => {
     const newErrors = { amountPaid: '', customerName: '' };
     let isValid = true;
-        
-    // Validate amount paid
+
     const amount = parseFloat(amountPaid);
     if (!amountPaid.trim()) {
       newErrors.amountPaid = 'El monto recibido es obligatorio';
@@ -35,14 +36,15 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ cartItems, onComplete, onCanc
       newErrors.amountPaid = 'El monto pagado debe ser mayor o igual al total';
       isValid = false;
     }
-    
+
     setErrors(newErrors);
     return isValid;
   };
 
+  // Maneja el envío del formulario. Valida la entrada, y si es válida, llama a onComplete.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (validate()) {
       setIsProcessing(true);
       try {
@@ -60,7 +62,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ cartItems, onComplete, onCanc
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-lg font-medium text-gray-900 mb-4">Completar Pago</h2>
-      
+
       <div className="mb-4 p-3 bg-gray-50 rounded-md">
         <div className="flex justify-between text-sm text-gray-500 mb-1">
           <span>Subtotal:</span>
@@ -71,7 +73,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ cartItems, onComplete, onCanc
           <span>${total.toFixed(2)}</span>
         </div>
       </div>
-      
+
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -89,7 +91,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ cartItems, onComplete, onCanc
             onChange={(e) => {
               setCustomerName(e.target.value);
               if (errors.customerName) {
-                setErrors({...errors, customerName: ''});
+                setErrors({ ...errors, customerName: '' });
               }
             }}
             disabled={isProcessing}
@@ -98,7 +100,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ cartItems, onComplete, onCanc
             <p className="mt-1 text-sm text-red-600">{errors.customerName}</p>
           )}
         </div>
-        
+
         <div className="mb-4">
           <label htmlFor="amountPaid" className="block text-sm font-medium text-gray-700 mb-1">
             Monto recibido <span className="text-red-500">*</span>
@@ -121,7 +123,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ cartItems, onComplete, onCanc
               onChange={(e) => {
                 setAmountPaid(e.target.value);
                 if (errors.amountPaid) {
-                  setErrors({...errors, amountPaid: ''});
+                  setErrors({ ...errors, amountPaid: '' });
                 }
               }}
               required
@@ -132,7 +134,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ cartItems, onComplete, onCanc
             <p className="mt-1 text-sm text-red-600">{errors.amountPaid}</p>
           )}
         </div>
-        
+
         {isValidAmount && (
           <div className="mb-4 p-3 bg-green-50 rounded-md">
             <div className="flex justify-between font-medium text-green-800">
@@ -141,7 +143,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ cartItems, onComplete, onCanc
             </div>
           </div>
         )}
-        
+
         <div className="flex justify-end space-x-3">
           <button
             type="button"

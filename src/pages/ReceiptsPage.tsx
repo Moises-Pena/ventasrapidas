@@ -11,16 +11,21 @@ const ReceiptsPage: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Ordena las ventas de más reciente a más antigua
   const sortedSales = sales.slice().sort((a, b) => 
     new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
+  
   const [searchParams, setSearchParams] = useState({
     customerName: '',
     receiptId: '',
     date: ''
   });
+
   const [selectedReceipts, setSelectedReceipts] = useState<string[]>([]);
 
+  // Función para actualizar la lista de ventas
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
@@ -30,6 +35,7 @@ const ReceiptsPage: React.FC = () => {
     }
   };
 
+  // Filtra las ventas basadas en los parámetros de búsqueda
   const filteredSales = sortedSales.filter(sale => {
     const matchesName = sale.customerName.toLowerCase().includes(searchParams.customerName.toLowerCase());
     const searchId = searchParams.receiptId.toLowerCase();
@@ -46,11 +52,13 @@ const ReceiptsPage: React.FC = () => {
     return matchesName && matchesId && matchesDate;
   });
 
+  // Calcula el total de páginas necesarias para la paginación
   const totalPages = Math.ceil(filteredSales.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
   const endIndex = startIndex + pageSize;
   const displayedSales = filteredSales.slice(startIndex, endIndex);
 
+  // Función para imprimir las ventas seleccionadas
   const handlePrintSelected = () => {
     const selectedSales = filteredSales.filter(sale => selectedReceipts.includes(sale.id));
     selectedSales.forEach(sale => {
@@ -58,6 +66,7 @@ const ReceiptsPage: React.FC = () => {
     });
   };
 
+  // Función para alternar la selección de facturas
   const toggleReceiptSelection = (saleId: string) => {
     setSelectedReceipts(prev => 
       prev.includes(saleId) 
@@ -66,6 +75,7 @@ const ReceiptsPage: React.FC = () => {
     );
   };
 
+  // Si los datos están cargando, se muestra el spinner de carga
   if (loading) {
     return (
       <div className="container mx-auto py-12">
@@ -105,13 +115,13 @@ const ReceiptsPage: React.FC = () => {
                 <option value={100}>100 facturas</option>
               </select>
               {selectedReceipts.length > 0 && (
-              <button
-                onClick={handlePrintSelected}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <Printer className="h-4 w-4 mr-1.5" />
-                Reimprimir ({selectedReceipts.length})
-              </button>
+                <button
+                  onClick={handlePrintSelected}
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <Printer className="h-4 w-4 mr-1.5" />
+                  Reimprimir ({selectedReceipts.length})
+                </button>
               )}
             </div>
           </div>

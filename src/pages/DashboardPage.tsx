@@ -5,36 +5,53 @@ import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const DashboardPage: React.FC = () => {
+  // Desestructura los valores necesarios desde el contexto de ventas (sales context)
   const { getDailySummary, sales, loading } = useSales();
+  
+  // Estado para manejar el período seleccionado por el usuario
   const [period, setPeriod] = useState('7d');
   
+  // Ordena las ventas de manera descendente por la fecha de la venta
   const sortedSales = sales.slice().sort((a, b) => 
     new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
   
+  /**
+   * Función para determinar cuántos días incluir en el período seleccionado.
+   * @param selectedPeriod - El período seleccionado por el usuario.
+   * @returns El número de días para el período.
+   */
   const getDaysForPeriod = (selectedPeriod: string): number => {
     switch (selectedPeriod) {
       case '7d':
-        return 7;
+        return 7; // Últimos 7 días
       case '14d':
-        return 14;
+        return 14; // Últimos 14 días
       case '30d':
-        return 30;
+        return 30; // Últimos 30 días
       case '12m':
+        // Para los últimos 12 meses, calcula la cantidad de días desde hace 12 meses hasta hoy
         const today = new Date();
         const twelveMonthsAgo = subMonths(today, 12);
         return Math.ceil((today.getTime() - twelveMonthsAgo.getTime()) / (1000 * 60 * 60 * 24));
       default:
-        return 7;
+        return 7; // Valor por defecto es 7 días
     }
   };
   
+  // Obtiene el resumen de ventas diarias basado en el período seleccionado
   const dailySummary = getDailySummary(getDaysForPeriod(period));
   
+  // Calcula el total de ventas sumando todas las ventas en el resumen diario
   const totalSales = dailySummary.reduce((sum, day) => sum + day.totalSales, 0);
+  
+  // Calcula el total de transacciones sumando todas las transacciones del resumen diario
   const totalTransactions = dailySummary.reduce((sum, day) => sum + day.salesCount, 0);
+  
+  // Calcula el ticket promedio dividiendo el total de ventas entre el número de transacciones
   const averageTicket = totalTransactions > 0 ? totalSales / totalTransactions : 0;
 
+  // Si los datos están en carga, muestra el spinner de carga
   if (loading) {
     return (
       <div className="container mx-auto py-12">
@@ -58,6 +75,7 @@ const DashboardPage: React.FC = () => {
             <select
               id="period"
               value={period}
+              // Cambia el estado 'period' cuando el usuario selecciona un nuevo período
               onChange={(e) => setPeriod(e.target.value)}
               className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
             >
@@ -87,6 +105,7 @@ const DashboardPage: React.FC = () => {
             <h2 className="text-lg font-medium text-gray-900 mb-4">
               {period === '12m' ? 'Ventas por Mes' : 'Ventas por Día'}
             </h2>
+            {/* Renderiza el gráfico de ventas basado en el período seleccionado */}
             <SalesChart data={dailySummary} />
           </div>
           
@@ -114,6 +133,7 @@ const DashboardPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
+                  {/* Mapea las últimas ventas, mostrando los detalles de cada venta */}
                   {sortedSales.slice(0, 10).map((sale) => (
                     <tr key={sale.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -133,6 +153,7 @@ const DashboardPage: React.FC = () => {
                       </td>
                     </tr>
                   ))}
+                  {/* Si no hay ventas, muestra un mensaje indicando que no hay ventas registradas */}
                   {sales.length === 0 && (
                     <tr>
                       <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
